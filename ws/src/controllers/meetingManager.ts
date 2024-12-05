@@ -1,6 +1,7 @@
 import { WebSocket } from "ws";
 import { User } from "./user";
 import { CanvasStroke, MeetingInfoType, MeetingsType } from "../types";
+import { RedisManager } from "./redisManagerWhiteboard";
 
 
 
@@ -53,13 +54,31 @@ export class MeetingManager {
         return this.instance;
     }
     static updateWhiteboard(stroke: CanvasStroke, meetingId: string) {
+        RedisManager.pushStrokeToRedis(meetingId, stroke);
         const meeting = this.meetings.get(meetingId);
-        if (!meeting) { return; }
-        meeting.whiteBoardState.push(stroke);
+        meeting!.whiteBoardState.push(stroke);
         this.broadcast(meetingId, JSON.stringify({
             type: 'stroke-input',
             stroke
         }));
+    }
+
+    static async startWhiteBoardRecording(meetingId: string, initialState: CanvasStroke[]) {
+        let recordingId = await RedisManager.initialLoadToDatabase(meetingId, initialState);
+        const meeting = this.meetings.get(meetingId);
+        if (!meeting) { return; }
+        meeting.recordingId = recordingId;
+        meeting.redisWhiteboardTimer = RedisManager.startStrokeFetchFromRedis(meetingId);
+    }
+    static async startRecording(meetingId: string, initialWhiteboardState: CanvasStroke[]) {
+        this.startWhiteBoardRecording(meetingId, initialWhiteboardState);
+    }
+
+    static async stopRecording(meetingId: string) {
+        const meeting = this.meetings.get(meetingId);
+        if (!meeting) { return; }
+        meeting.recordingId = undefined;
+        clearTimeout(meeting.redisWhiteboardTimer)
     }
 
 
@@ -67,6 +86,9 @@ export class MeetingManager {
         console.log(this.meetings)
     }
 
+    static removeMeetingsData(meetingId: string) {
+        this.meetings.delete(meetingId);
+    }
 
 
     static broadcast(meetingId: string, jsonString: string) {

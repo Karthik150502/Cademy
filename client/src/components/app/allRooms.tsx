@@ -7,6 +7,7 @@ import { getMeetings } from '@/actions/getAllMeetings'
 import { Loader2 } from 'lucide-react'
 import { Button } from '../ui/button'
 import { useRouter } from 'next/navigation'
+import { cn } from '@/lib/utils'
 
 export default function AllRooms() {
 
@@ -18,8 +19,8 @@ export default function AllRooms() {
     })
 
     return (
-        <div className='rounded-xl w-[90%] grid lg:grid-cols-2 sm:grid-cols-1 place-content-start gap-3 p-4 shadow-inner'>
-            {isPending ? <div className='flex flex-col items-center justify-center gap-y-2'>
+        <div className={cn("rounded-xl w-[90%] grid lg:grid-cols-2 sm:grid-cols-1  gap-3 p-4 shadow-inner place-content-start relative")}>
+            {isPending ? <div className='w-full absolute top-10 flex flex-col items-center justify-center gap-y-2'>
                 <Loader2 className="animate-spin" />
                 <p>Fetching user rooms, kinldy wait....</p>
             </div> : <>

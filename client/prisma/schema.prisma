@@ -49,13 +49,14 @@ model Session {
 }
 
 model Room {
-  id         String       @id @default(cuid())
-  title      String
-  organiser  String
-  user       User         @relation(fields: [organiser], references: [id])
-  Chat       Chat[]
-  createdAt  DateTime     @default(now())
-  RoomMember RoomMember[]
+  id               String             @id @default(cuid())
+  title            String
+  organiser        String
+  user             User               @relation(fields: [organiser], references: [id])
+  Chat             Chat[]
+  createdAt        DateTime           @default(now())
+  RoomMember       RoomMember[]
+  MeetingRecording MeetingRecording[]
 }
 
 model Chat {
@@ -76,4 +77,14 @@ model RoomMember {
   createdAt DateTime @default(now())
 
   @@unique([roomId, userId])
+}
+
+model MeetingRecording {
+  id     String @id @default(cuid())
+  roomId String
+  room   Room   @relation(fields: [roomId], references: [id])
+
+  initialState     String   @default("")
+  subsequentStates String   @default("")
+  createdAt        DateTime @default(now())
 }

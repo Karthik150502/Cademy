@@ -29,7 +29,7 @@ export class User {
 
 
     initialize() {
-        this.ws.onmessage = (message) => {
+        this.ws.onmessage = async (message) => {
             let parsed: IncomingMessageType<IncomingData>;
             try {
                 parsed = JSON.parse(message.data.toString());
@@ -50,6 +50,7 @@ export class User {
                     break;
                 }
                 case IncomingEvents.LEAVE_MEETING: {
+                    // TODO: End the meeting for other users if the organisers leaves the meeting.
                     this.destroy();
                     break;
                 }
@@ -59,6 +60,16 @@ export class User {
                 }
                 case IncomingEvents.STROKE_INPUT: {
                     MeetingManager.updateWhiteboard(parsed.data.stroke, this.meetingId!);
+                    break;
+                }
+                case IncomingEvents.START_RECORDING: {
+                    console.log("Initial Strokes: ", parsed.data.initialStrokes);
+                    await MeetingManager.startRecording(this.meetingId!, parsed.data.initialStrokes);
+                    break;
+                }
+                case IncomingEvents.STOP_RECORDING: {
+                    console.log("Recording stopped");
+                    await MeetingManager.stopRecording(this.meetingId!);
                     break;
                 }
 
@@ -72,6 +83,10 @@ export class User {
 
 
     destroy() {
+        // Deleting the in-memory meetings data if the orgniaser leaves the meeting. 
+        if (MeetingManager.getMeeting(this.meetingId!)?.organiserId === this.id) {
+            MeetingManager.removeMeetingsData(this.meetingId!);
+        }
         this.ws.close();
         MeetingManager.removeUser(this.getMeetingId()!, this)
         // TODO: remove from the meetings data

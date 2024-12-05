@@ -3,13 +3,12 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { Slider } from "@/components/ui/slider"
 import { cn } from '@/lib/utils'
-import { ChevronDown, Eraser } from 'lucide-react'
+import { ChevronDown, Eraser, VideoIcon } from 'lucide-react'
 import { Button } from '../ui/button'
 import { useWS } from '@/providers/wsProvider'
 import { CanvasStroke } from '@/types/whiteboard';
 import { useRecoilState } from 'recoil';
 import { WhiteBoarsInitialState } from '@/store/recoil'
-// import { restoreCanvas } from '@/client-actions/whiteboard/restoreCanvas'
 const colors = ['black', 'red', 'green', 'blue', 'yellow']
 
 export default function Whiteboard() {
@@ -22,21 +21,9 @@ export default function Whiteboard() {
     const [isDrawing, setIsDrawing] = useState(false);
     const [isErasing, setIsErasing] = useState(false);
     const [paths, setPaths] = useState<CanvasStroke[]>([]);
+    const [isRecording, setIsRecording] = useState<boolean>(false);
     const [gWhiteBoard, setGWhiteBoard] = useRecoilState(WhiteBoarsInitialState);
-
     const ws = useWS();
-
-
-
-    // export type CanvasStroke = {
-    //     x: number,
-    //     y: number,
-    //     color: string,
-    //     size: number,
-    //     timeStamp: number;
-    //     isNewStroke: boolean
-    // } 
-
 
 
     const restoreCanvasStroke = useCallback((path: CanvasStroke) => {
@@ -66,9 +53,6 @@ export default function Whiteboard() {
         };
         setPaths((prev) => [...prev, path]);
     }, [paths]);
-
-
-
 
     const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
         const canvas = canvasRef.current
@@ -133,7 +117,6 @@ export default function Whiteboard() {
 
     useEffect(() => {
         if (gWhiteBoard.length > 0) {
-            console.log("recoil = ", gWhiteBoard)
             restoreCanvas(gWhiteBoard);
             setGWhiteBoard([]);
         }
@@ -210,6 +193,26 @@ export default function Whiteboard() {
         }
     }
 
+
+
+    const startRecording = () => {
+        if (ws && ws.socket) {
+            ws.socket.send(JSON.stringify({
+                type: "start-recording",
+                data: {
+                    initialStrokes: paths
+                }
+            }))
+        }
+    }
+    const stopRecording = () => {
+        if (ws && ws.socket) {
+            ws.socket.send(JSON.stringify({
+                type: "stop-recording",
+            }))
+        }
+    }
+
     const drawAndUpdate = useCallback((data: CanvasStroke) => {
         setPaths((prev) => [...prev, {
             ...data
@@ -250,16 +253,25 @@ export default function Whiteboard() {
                     <ChevronDown />
                 </div>
 
-                {/* <Button
+                <Button variant={"outline"} className='flex items-center justify-center gap-x-2'
                     onClick={() => {
-                        printPaths()
+                        if (!isRecording) {
+                            startRecording();
+                        } else {
+                            stopRecording();
+                        }
+                        setIsRecording(!isRecording)
                     }}
-                >Get Paths</Button>
-                <Button
-                    onClick={() => {
-                        showMeetings()
-                    }}
-                >Show Meetings</Button> */}
+                >
+                    {isRecording ? <>
+                        <div className='h-3 w-3 bg-red-500 rounded-full'></div>
+                        <p>Recording</p>
+                    </> : <>
+                        <VideoIcon />
+                        <p>Record</p>
+                    </>}
+                </Button>
+
                 <div className="flex space-x-2">
                     {colors.map((c) => (
                         <Button

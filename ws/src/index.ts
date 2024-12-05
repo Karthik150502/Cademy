@@ -11,11 +11,8 @@ const wss = new WebSocketServer({
 
 
 wss.on("connection", (ws: WebSocket) => {
-    console.log(`User connected on....`)
-
+    console.log(`User connected on....`);
     const user: User = new User(ws);
-
-
     ws.on("error", (error) => {
         console.log("Error connecting to the Websocket connection.");
         console.error(error);
@@ -24,7 +21,7 @@ wss.on("connection", (ws: WebSocket) => {
 
 
     ws.onclose = () => {
-        console.log("Uer disconnected....", user.getuserId());
+        console.log("User disconnected....", user.getuserId());
         user.destroy();
     }
 })
