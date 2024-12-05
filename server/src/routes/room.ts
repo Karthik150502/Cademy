@@ -38,6 +38,7 @@ app.get("/:meetingId", authMiddleware, async (req: Request, res: Response) => {
             status: 404,
             message: "Room not found"
         })
+        return;
     }
     res.json({
         status: 200,

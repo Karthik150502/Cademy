@@ -1,0 +1,79 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model User {
+  id         String       @id @default(cuid())
+  name       String?
+  email      String       @unique
+  password   String?
+  image      String?
+  Account    Account[]
+  Session    Session[]
+  Room       Room[]
+  Chat       Chat[]
+  RoomMember RoomMember[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  expiresAt DateTime
+  token     String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Room {
+  id         String       @id @default(cuid())
+  title      String
+  organiser  String
+  user       User         @relation(fields: [organiser], references: [id])
+  Chat       Chat[]
+  createdAt  DateTime     @default(now())
+  RoomMember RoomMember[]
+}
+
+model Chat {
+  id        String   @id @default(cuid())
+  roomId    String
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  sentBy    String
+  user      User     @relation(fields: [sentBy], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model RoomMember {
+  id        String   @id @default(cuid())
+  roomId    String
+  userId    String
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([roomId, userId])
+}
