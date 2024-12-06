@@ -27,6 +27,7 @@ export type MeetingInfoType = {
     },
     whiteBoardState: CanvasStroke[],
     recordingId?: string,
+    isRecording: boolean,
     redisWhiteboardTimer?: NodeJS.Timeout
 }
 

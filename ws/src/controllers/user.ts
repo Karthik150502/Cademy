@@ -2,11 +2,12 @@ import { randomUUID } from "crypto";
 import { WebSocket } from "ws";
 import { IncomingData, IncomingEvents, IncomingMessageType } from "../types";
 import { MeetingManager } from "./meetingManager";
+import { WsHandler } from "./wsHandler";
 export class User {
 
     private id: string | null = null;
     private meetingId: string | null = null;
-
+    
     constructor(private ws: WebSocket) {
         this.ws = ws;
         this.initialize();
@@ -19,7 +20,7 @@ export class User {
     public setMeetingId(meetingId: string | null) {
         this.meetingId = meetingId
     }
-    public getuserId() {
+    public getUserId() {
         return this.id
     }
 
@@ -59,17 +60,28 @@ export class User {
                     break;
                 }
                 case IncomingEvents.STROKE_INPUT: {
-                    MeetingManager.updateWhiteboard(parsed.data.stroke, this.meetingId!);
+                    MeetingManager.updateWhiteboard(this.id!, parsed.data.stroke, this.meetingId!);
                     break;
                 }
                 case IncomingEvents.START_RECORDING: {
-                    console.log("Initial Strokes: ", parsed.data.initialStrokes);
                     await MeetingManager.startRecording(this.meetingId!, parsed.data.initialStrokes);
+                    MeetingManager.broadcast(this.id!, this.meetingId!, JSON.stringify({
+                        type: "recording-started",
+                        data: {
+                            startedBy: this.id
+                        }
+                    }));
                     break;
                 }
                 case IncomingEvents.STOP_RECORDING: {
                     console.log("Recording stopped");
                     await MeetingManager.stopRecording(this.meetingId!);
+                    MeetingManager.broadcast(this.id!, this.meetingId!, JSON.stringify({
+                        type: "recording-stopped",
+                        data: {
+                            startedBy: this.id
+                        }
+                    }));
                     break;
                 }
 
@@ -91,6 +103,7 @@ export class User {
         MeetingManager.removeUser(this.getMeetingId()!, this)
         // TODO: remove from the meetings data
     }
+
 
 
 }

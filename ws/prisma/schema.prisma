@@ -84,7 +84,7 @@ model MeetingRecording {
   roomId String
   room   Room   @relation(fields: [roomId], references: [id])
 
-  initialState     Json[]   @default([])
-  subsequentStates Json[]   @default([])
+  initialState     String   @default("[]")
+  subsequentStates String   @default("[]")
   createdAt        DateTime @default(now())
 }
