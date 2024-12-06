@@ -68,23 +68,35 @@ export class User {
                 }
                 case IncomingEvents.START_RECORDING: {
                     await MeetingManager.startRecording(this.meetingId!, parsed.data.initialStrokes);
-                    MeetingManager.broadcast(this.id!, this.meetingId!, JSON.stringify({
+                    this.wsHandler?.broadcast(this.meetingId!, JSON.stringify({
                         type: "recording-started",
                         data: {
                             startedBy: this.id
                         }
-                    }));
+                    }))
+                    // MeetingManager.broadcast(this.id!, this.meetingId!, JSON.stringify({
+                    //     type: "recording-started",
+                    //     data: {
+                    //         startedBy: this.id
+                    //     }
+                    // }));
                     break;
                 }
                 case IncomingEvents.STOP_RECORDING: {
                     console.log("Recording stopped");
                     await MeetingManager.stopRecording(this.meetingId!);
-                    MeetingManager.broadcast(this.id!, this.meetingId!, JSON.stringify({
+                    this.wsHandler?.broadcast(this.meetingId!, JSON.stringify({
                         type: "recording-stopped",
                         data: {
                             startedBy: this.id
                         }
-                    }));
+                    }))
+                    // MeetingManager.broadcast(this.id!, this.meetingId!, JSON.stringify({
+                    //     type: "recording-stopped",
+                    //     data: {
+                    //         startedBy: this.id
+                    //     }
+                    // }));
                     break;
                 }
 

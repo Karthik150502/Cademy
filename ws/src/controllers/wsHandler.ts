@@ -1,7 +1,7 @@
 import { User } from "./user";
 import { MeetingManager } from "./meetingManager";
 import WebSocket from "ws";
-import { IncomingData, IncomingEvents, IncomingMessageType } from "../types";
+import { IncomingData, IncomingEvents, IncomingMessageType, OutgoingEvents } from "../types";
 export class WsHandler {
     constructor(private user: User, private ws: WebSocket) {
         this.user = user;
@@ -15,8 +15,8 @@ export class WsHandler {
         }
         const userId = this.user.id!;
         Object.entries(meetingInfo.members).forEach(([peerId, peer]: [string, User]) => {
-            console.log("userid, Id", userId, peerId)
             if (userId !== peerId) {
+                console.log(`Broadcasted to ${peer.id}`)
                 peer.sendMessage(jsonString)
             }
         })
@@ -62,7 +62,7 @@ export class WsHandler {
                     const meeting = MeetingManager.getMeeting(this.user.meetingId!);
                     console.log("initialStrokes = ", meeting?.whiteBoardState);
                     this.sendMessage(JSON.stringify({
-                        type: "user-joined",
+                        type: OutgoingEvents.USER_JOINED,
                         strokes: meeting?.whiteBoardState || []
                     }))
                     break;
@@ -79,7 +79,7 @@ export class WsHandler {
                 case IncomingEvents.STROKE_INPUT: {
                     MeetingManager.updateWhiteboard(this.user.id!, parsed.data.stroke, this.user.meetingId!);
                     this.broadcast(this.user.meetingId!, JSON.stringify({
-                        type: 'stroke-input',
+                        type: OutgoingEvents.STROKE_INPUT,
                         stroke: parsed.data.stroke
                     }))
                     break;
@@ -87,7 +87,7 @@ export class WsHandler {
                 case IncomingEvents.START_RECORDING: {
                     await MeetingManager.startRecording(this.user.meetingId!, parsed.data.initialStrokes);
                     MeetingManager.broadcast(this.user.id!, this.user.meetingId!, JSON.stringify({
-                        type: "recording-started",
+                        type: OutgoingEvents.RECORDING_STARTED,
                         data: {
                             startedBy: this.user.id!
                         }
@@ -98,7 +98,7 @@ export class WsHandler {
                     console.log("Recording stopped");
                     await MeetingManager.stopRecording(this.user.meetingId!);
                     MeetingManager.broadcast(this.user.id!, this.user.meetingId!, JSON.stringify({
-                        type: "recording-stopped",
+                        type: OutgoingEvents.RECORDING_STOPPED,
                         data: {
                             startedBy: this.user.id!
                         }
