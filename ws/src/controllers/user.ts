@@ -1,16 +1,16 @@
-import { randomUUID } from "crypto";
 import { WebSocket } from "ws";
 import { IncomingData, IncomingEvents, IncomingMessageType } from "../types";
 import { MeetingManager } from "./meetingManager";
 import { WsHandler } from "./wsHandler";
 export class User {
 
-    private id: string | null = null;
+    public id: string | null = null;
     private meetingId: string | null = null;
-    
+    private wsHandler: WsHandler | null;
     constructor(private ws: WebSocket) {
-        this.ws = ws;
-        this.initialize();
+        // this.ws = ws;
+        // this.initialize();
+        this.wsHandler = new WsHandler(this, ws);
     }
 
 
@@ -20,13 +20,16 @@ export class User {
     public setMeetingId(meetingId: string | null) {
         this.meetingId = meetingId
     }
-    public getUserId() {
-        return this.id
+    public setUserId(userId: string) {
+        this.id = userId;
     }
 
     public sendMessage(jsonString: string) {
-        this.ws.send(jsonString);
+        // this.ws.send(jsonString);
+        this.wsHandler?.sendMessage(jsonString);
     }
+
+
 
 
     initialize() {
@@ -99,7 +102,8 @@ export class User {
         if (MeetingManager.getMeeting(this.meetingId!)?.organiserId === this.id) {
             MeetingManager.removeMeetingsData(this.meetingId!);
         }
-        this.ws.close();
+        // this.ws.close();
+        this.wsHandler?.closeWs();
         MeetingManager.removeUser(this.getMeetingId()!, this)
         // TODO: remove from the meetings data
     }

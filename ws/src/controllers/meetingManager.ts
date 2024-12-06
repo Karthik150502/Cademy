@@ -18,7 +18,7 @@ export class MeetingManager {
 
     static addUser(meetingId: string, user: User) {
         let meetingChannel = this.meetings.get(meetingId);
-        const userId = user.getUserId()!;
+        const userId = user.id!;
         if (!meetingChannel) {
             let meetingInfo: MeetingInfoType = {
                 organiserId: userId,
@@ -39,7 +39,7 @@ export class MeetingManager {
     }
 
     static removeUser(meetingId: string, user: User) {
-        delete this.meetings.get(meetingId)?.members[user.getUserId()!]
+        delete this.meetings.get(meetingId)?.members[user.id!]
         user.setMeetingId(null);
     }
 
