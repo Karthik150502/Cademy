@@ -60,10 +60,10 @@ export class MeetingManager {
             RedisManager.pushStrokeToRedis(meetingId, stroke);
         }
         meeting!.whiteBoardState.push(stroke);
-        this.broadcast(userId, meetingId, JSON.stringify({
-            type: 'stroke-input',
-            stroke
-        }));
+        // this.broadcast(userId, meetingId, JSON.stringify({
+        //     type: 'stroke-input',
+        //     stroke
+        // }));
     }
 
     static async startWhiteBoardRecording(meetingId: string, initialState: CanvasStroke[]) {

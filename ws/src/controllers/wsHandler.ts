@@ -59,7 +59,7 @@ export class WsHandler {
                     this.user.setUserId(usrId);
                     console.log("User joined... = ", usrId);
                     MeetingManager.addUser(parsed.data.meetingId, this.user);
-                    const meeting = MeetingManager.getMeeting(this.user.getMeetingId()!);
+                    const meeting = MeetingManager.getMeeting(this.user.meetingId!);
                     console.log("initialStrokes = ", meeting?.whiteBoardState);
                     this.sendMessage(JSON.stringify({
                         type: "user-joined",
@@ -77,12 +77,16 @@ export class WsHandler {
                     break;
                 }
                 case IncomingEvents.STROKE_INPUT: {
-                    MeetingManager.updateWhiteboard(this.user.id!, parsed.data.stroke, this.user.getMeetingId()!);
+                    MeetingManager.updateWhiteboard(this.user.id!, parsed.data.stroke, this.user.meetingId!);
+                    this.broadcast(this.user.meetingId!, JSON.stringify({
+                        type: 'stroke-input',
+                        stroke: parsed.data.stroke
+                    }))
                     break;
                 }
                 case IncomingEvents.START_RECORDING: {
-                    await MeetingManager.startRecording(this.user.getMeetingId()!, parsed.data.initialStrokes);
-                    MeetingManager.broadcast(this.user.id!, this.user.getMeetingId()!, JSON.stringify({
+                    await MeetingManager.startRecording(this.user.meetingId!, parsed.data.initialStrokes);
+                    MeetingManager.broadcast(this.user.id!, this.user.meetingId!, JSON.stringify({
                         type: "recording-started",
                         data: {
                             startedBy: this.user.id!
@@ -92,8 +96,8 @@ export class WsHandler {
                 }
                 case IncomingEvents.STOP_RECORDING: {
                     console.log("Recording stopped");
-                    await MeetingManager.stopRecording(this.user.getMeetingId()!);
-                    MeetingManager.broadcast(this.user.id!, this.user.getMeetingId()!, JSON.stringify({
+                    await MeetingManager.stopRecording(this.user.meetingId!);
+                    MeetingManager.broadcast(this.user.id!, this.user.meetingId!, JSON.stringify({
                         type: "recording-stopped",
                         data: {
                             startedBy: this.user.id!

@@ -5,7 +5,7 @@ import { WsHandler } from "./wsHandler";
 export class User {
 
     public id: string | null = null;
-    private meetingId: string | null = null;
+    public meetingId: string | null = null;
     private wsHandler: WsHandler | null;
     constructor(private ws: WebSocket) {
         // this.ws = ws;
