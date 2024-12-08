@@ -44,8 +44,8 @@ export class WsHandler {
 
     public closeWs() {
         this.ws.close();
+        this.player = null;
     }
-
 
     public initialize() {
         this.ws.onmessage = async (message) => {
@@ -112,8 +112,12 @@ export class WsHandler {
                 case IncomingEvents.PLAY_RECORDING: {
                     const recordingId = parsed.data.recordingId;
                     console.log(`Replaying the strokes for whiteboard-${recordingId}`);
+                    const startingTime = await this.user.getRecordingStartingTime(recordingId);
                     this.player = new Player(recordingId, this.user.id);
-                    this.player.play();
+                    this.ws.send(JSON.stringify({
+                        type: OutgoingEvents.STARTING_REPLAY
+                    }))
+                    this.player.play(startingTime!);
                     break;
                 }
 

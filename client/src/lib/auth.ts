@@ -23,7 +23,6 @@ export const authOptions = {
                 password: { label: "Password", type: "password" }
             },
             authorize: async (credentials) => {
-                console.log({ email: credentials.email, password: credentials.password });
                 // This should be handled with client side validations.
                 if (!credentials.email || !credentials.password) {
                     throw new CredentialsSignin("Kinldy provide the Credentials.")
@@ -60,17 +59,11 @@ export const authOptions = {
         })
     ],
     events: {
-        signOut: async () => {
-            await signOutUser();
-        }
     },
     callbacks: {
 
         signIn: async ({ user, account }) => {
-            console.log("signin")
-            console.log("=================================================")
-            console.log({ user, account })
-            console.log("=================================================");
+
             let newUser;
             let userAccount;
             try {
@@ -133,17 +126,13 @@ export const authOptions = {
             }
         },
 
-        authorized: async ({ auth }) => {
-            console.log("Auth = ", auth);
-            return !!auth;
-        },
+        // authorized: async ({ auth }) => {
+        //     return !!auth;
+        // },
 
 
         jwt: async ({ token, user }) => {
-            console.log("=================jwt===================");
             const currentTimestamp = Math.floor(Date.now() / 1000);
-
-            console.log({ token, user });
             // On initial sign-in
             if (user) {
                 const userId = (await prisma.user.findUnique({

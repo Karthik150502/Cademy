@@ -1,5 +1,5 @@
 'use client'
-import React, { useCallback } from 'react'
+import React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { getSingleRecordingDetail } from '@/actions/getSingleRecording'
 import { ArrowLeft, Info, Loader, UserCircle } from 'lucide-react'
@@ -9,8 +9,8 @@ import { Play } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import moment from 'moment'
 import Image from 'next/image'
-import { useWSWhiteboardReplay } from '@/providers/wsWhiteBoardReplay'
 import Link from 'next/link'
+// import { useWS } from '@/providpers/wsProvider'
 type SingleRecordingType = MeetingRecording & {
     room: Room & {
         user: User
@@ -20,7 +20,7 @@ type SingleRecordingType = MeetingRecording & {
 export default function RecordingDetailPage() {
 
 
-    const ws = useWSWhiteboardReplay();
+    // const ws = useWS();
 
 
     const recordingId = useSearchParams().get("recordingId");

@@ -68,5 +68,6 @@ export enum OutgoingEvents {
     RECORDING_STARTED = "recording-started",
     RECORDING_STOPPED = "recording-stopped",
     USER_JOINED = "user-joined",
-    STROKE_INPUT = "stroke-input"
+    STROKE_INPUT = "stroke-input",
+    STARTING_REPLAY = "starting-replay",
 }

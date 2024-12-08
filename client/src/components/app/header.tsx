@@ -3,7 +3,7 @@ import React from 'react'
 import Logo from '../ui/brand';
 import CreateRoomDialog from './createRoomDialog';
 import JoinRoomDialog from './joinRoomDialog';
-import { signOut } from 'next-auth/react';
+import { signOutUser } from '@/actions/signOut';
 import MobileNav from './mobileNav';
 import Link from 'next/link';
 import { Button } from '../ui/button';
@@ -28,8 +28,8 @@ export default function Header() {
                     <JoinRoomDialog />
                     <CreateRoomDialog />
                     <p className='cursor-pointer text-xs opacity-70 hover:opacity-100 transition-opacity duration-300'
-                        onClick={() => {
-                            signOut();
+                        onClick={async () => {
+                            await signOutUser();
                         }}
                     >
                         Log Out

@@ -76,6 +76,7 @@ export class MeetingManager {
         return recordingId;
     }
     static async startRecording(meetingId: string, initialWhiteboardState: CanvasStroke[]) {
+        KafkaHandler.connectProducer();
         let recordingId = await this.startWhiteBoardRecording(meetingId, initialWhiteboardState);
         await KafkaHandler.createTopic(`whiteboard-${recordingId}`)
     }
@@ -87,7 +88,7 @@ export class MeetingManager {
         RedisManager.stopStrokeFetchFromRedis(meetingId, meeting.recordingId!);
         meeting.recordingId = undefined;
         meeting.isRecording = false;
-        await KafkaHandler.disconnect();
+        await KafkaHandler.disconnectProducer();
     }
 
 
@@ -124,3 +125,6 @@ export class MeetingManager {
         return true;
     }
 }
+
+
+

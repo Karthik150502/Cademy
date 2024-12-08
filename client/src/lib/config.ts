@@ -5,7 +5,6 @@ export class Env {
     static readonly GoogleSecret: string = process.env.GOOGLE_CLIENT_SECRET as string;
     static readonly AuthSecret: string = process.env.AUTH_SECRET as string;
     static readonly WsServer: string = process.env.NEXT_PUBLIC_WS_SERVER as string;
-    static readonly WsWhiteboardPlaybackServer: string = process.env.NEXT_PUBLIC_WS_WHITEBOARD__PLAYBACK_SERVER as string;
 }
 
 

@@ -15,18 +15,18 @@ export class RedisManager {
 
     public static startStrokeFetchFromRedis(meetingId: string, recordingId: string) {
         return setInterval(async () => {
-            const strokes = await this.getStrokesFromRedis(meetingId);
-            const payload = this.parseStrokePaylod(strokes);
-            console.log(payload);
-            this.subsequentLoadToDatabase(recordingId, payload)
+            await this.fetchFromRedis(meetingId, recordingId);
         }, 5000)
     };
 
-    public static async stopStrokeFetchFromRedis(meetingId: string, recordingId: string) {
+    public static async fetchFromRedis(meetingId: string, recordingId: string) {
         const strokes = await this.getStrokesFromRedis(meetingId);
         const payload = this.parseStrokePaylod(strokes);
-        console.log(payload);
         this.subsequentLoadToDatabase(recordingId, payload)
+    }
+
+    public static async stopStrokeFetchFromRedis(meetingId: string, recordingId: string) {
+        await this.fetchFromRedis(meetingId, recordingId);
     }
 
     public static parseStrokePaylod(strokeString: string[]) {

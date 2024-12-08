@@ -1,6 +1,6 @@
 import { Admin, Kafka, Producer } from "kafkajs";
 import { KAFKA_URL } from "../lib/config";
-
+import { randomUUID } from "crypto";
 
 export class KafkaHandler {
     private kafka: Kafka = new Kafka({
@@ -18,7 +18,7 @@ export class KafkaHandler {
         return this.producer;
     }
     public getConsumer(groupId: string, userId: string) {
-        return this.kafka.consumer({ groupId: `${groupId}-${userId}` });
+        return this.kafka.consumer({ groupId: `${groupId}-${randomUUID()}` });
     }
 
 
@@ -46,9 +46,14 @@ export class KafkaHandler {
         await instance.admin.disconnect();
     }
 
-    public static async produceToTopic(topic: string, payload: string) {
+
+    public static async connectProducer() {
         const producer = this.getInstance().getProducer();
         await producer.connect();
+    }
+
+    public static async produceToTopic(topic: string, payload: string) {
+        const producer = this.getInstance().getProducer();
         await producer.send({
             topic,
             messages: [
@@ -60,7 +65,7 @@ export class KafkaHandler {
 
 
 
-    public static async disconnect() {
+    public static async disconnectProducer() {
         await this.getInstance().producer.disconnect();
     }
 

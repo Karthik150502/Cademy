@@ -14,7 +14,7 @@ export default function WsWhiteBoardReplay({ children }: { children: React.React
     const { data } = useSession();
     const [socket, setSocket] = useState<WebSocket | null>(null);
     useEffect(() => {
-        const state = new WebSocket(`${Env.WsWhiteboardPlaybackServer}?userId=${data?.user?.id}`);
+        const state = new WebSocket(`${Env.WsServer}?userId=${data?.user?.id}`);
         setSocket(state);
         return () => {
             state.close();
