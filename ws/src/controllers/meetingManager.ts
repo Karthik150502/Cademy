@@ -55,12 +55,13 @@ export class MeetingManager {
     static getInstance() {
         return this.instance;
     }
-    static updateWhiteboard(stroke: CanvasStroke, meetingId: string) {
+    static async updateWhiteboard(stroke: CanvasStroke, meetingId: string) {
         const meeting = this.meetings.get(meetingId);
+        const recordingId = meeting?.recordingId!;
         if (meeting?.isRecording) {
             const payload = JSON.stringify(stroke)
-            RedisManager.pushStrokeToRedis(meetingId, payload);
-            KafkaHandler.produceToTopic(`whiteboard-${meetingId}`, payload);
+            await RedisManager.pushStrokeToRedis(meetingId, payload);
+            await KafkaHandler.produceToTopic(`whiteboard-${recordingId}`, payload);
         }
         meeting!.whiteBoardState.push(stroke);
     }
@@ -72,9 +73,11 @@ export class MeetingManager {
         meeting.recordingId = recordingId;
         meeting.isRecording = true;
         meeting.redisWhiteboardTimer = RedisManager.startStrokeFetchFromRedis(meetingId, recordingId);
+        return recordingId;
     }
     static async startRecording(meetingId: string, initialWhiteboardState: CanvasStroke[]) {
-        this.startWhiteBoardRecording(meetingId, initialWhiteboardState);
+        let recordingId = await this.startWhiteBoardRecording(meetingId, initialWhiteboardState);
+        await KafkaHandler.createTopic(`whiteboard-${recordingId}`)
     }
 
     static async stopRecording(meetingId: string) {
@@ -84,6 +87,7 @@ export class MeetingManager {
         RedisManager.stopStrokeFetchFromRedis(meetingId, meeting.recordingId!);
         meeting.recordingId = undefined;
         meeting.isRecording = false;
+        await KafkaHandler.disconnect();
     }
 
 

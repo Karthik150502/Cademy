@@ -2,8 +2,11 @@ import { User } from "./user";
 import { MeetingManager } from "./meetingManager";
 import WebSocket from "ws";
 import { IncomingData, IncomingEvents, IncomingMessageType, OutgoingEvents } from "../types";
-import { KafkaHandler } from "./kafkaHandler";
+import { Player } from "./player";
 export class WsHandler {
+
+    private player: Player | null = null;
+
     constructor(private user: User, private ws: WebSocket) {
         this.user = user;
         this.ws = ws;
@@ -87,7 +90,6 @@ export class WsHandler {
                 }
                 case IncomingEvents.START_RECORDING: {
                     await MeetingManager.startRecording(this.user.meetingId!, parsed.data.initialStrokes);
-                    await KafkaHandler.createTopic(`whiteboard-${this.user.meetingId!}`)
                     MeetingManager.broadcast(this.user.id!, this.user.meetingId!, JSON.stringify({
                         type: OutgoingEvents.RECORDING_STARTED,
                         data: {
@@ -99,13 +101,19 @@ export class WsHandler {
                 case IncomingEvents.STOP_RECORDING: {
                     console.log("Recording stopped");
                     await MeetingManager.stopRecording(this.user.meetingId!);
-                    await KafkaHandler.disconnect();
                     MeetingManager.broadcast(this.user.id!, this.user.meetingId!, JSON.stringify({
                         type: OutgoingEvents.RECORDING_STOPPED,
                         data: {
                             startedBy: this.user.id!
                         }
                     }));
+                    break;
+                }
+                case IncomingEvents.PLAY_RECORDING: {
+                    const recordingId = parsed.data.recordingId;
+                    console.log(`Replaying the strokes for whiteboard-${recordingId}`);
+                    this.player = new Player(recordingId, this.user.id);
+                    this.player.play();
                     break;
                 }
 

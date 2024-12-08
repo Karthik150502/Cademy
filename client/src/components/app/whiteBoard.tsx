@@ -6,24 +6,26 @@ import { cn } from '@/lib/utils'
 import { ChevronDown, Eraser, VideoIcon } from 'lucide-react'
 import { Button } from '../ui/button'
 import { useWS } from '@/providers/wsProvider'
-import { CanvasStroke } from '@/types/whiteboard';
+import { CanvasStroke, IncomingEvents, OutgoingEvents } from '@/types/whiteboard';
 import { useRecoilState } from 'recoil';
 import { WhiteBoarsInitialState } from '@/store/recoil'
-const colors = ['black', 'red', 'green', 'blue', 'yellow']
-
-export default function Whiteboard() {
-    const canvasRef = useRef<HTMLCanvasElement>(null)
-    const [color, setColor] = useState('black')
+import { toast } from 'sonner'
+import { useRouter } from 'next/navigation'
+const colors = ['black', 'red', 'green', 'blue', 'yellow', "white"]
+export default function Whiteboard({ meetingId }: { meetingId: string }) {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const router = useRouter();
+    const [color, setColor] = useState('black');
     const [size, setSize] = useState(5);
     const [eraserSize, setEraserSize] = useState(5);
-    const [opacity, setOpacity] = useState(1)
-    const [openTool, setOpenTool] = useState<boolean>(true)
+    const [openTool, setOpenTool] = useState<boolean>(true);
     const [isDrawing, setIsDrawing] = useState(false);
     const [isErasing, setIsErasing] = useState(false);
     const [paths, setPaths] = useState<CanvasStroke[]>([]);
     const [isRecording, setIsRecording] = useState<boolean>(false);
     const [gWhiteBoard, setGWhiteBoard] = useRecoilState(WhiteBoarsInitialState);
     const ws = useWS();
+    const divRef = useRef<HTMLDivElement | null>(null)
 
 
     const restoreCanvasStroke = useCallback((path: CanvasStroke) => {
@@ -89,7 +91,7 @@ export default function Whiteboard() {
                     ctx.strokeStyle = path.color
                     ctx.lineWidth = path.size
                 }
-                ctx.globalAlpha = opacity
+                ctx.globalAlpha = 1
                 if (index === 0 || path.isNewStroke) {
                     ctx.beginPath();
                     ctx.moveTo(path.x, path.y);
@@ -104,7 +106,7 @@ export default function Whiteboard() {
                 }
             }
         })
-    }, [opacity]);
+    }, []);
 
     useEffect(() => {
         const pathString = window.localStorage.getItem("stroke_paths");
@@ -126,13 +128,33 @@ export default function Whiteboard() {
         if (ws?.socket) {
             ws.socket.onmessage = ({ data }) => {
                 const parsed = JSON.parse(data.toString());
-                if (parsed.type === 'stroke-input') {
-                    console.log("From server = ", parsed);
-                    restoreCanvasStroke(parsed.stroke);
+                switch (parsed.type) {
+                    case IncomingEvents.STROKE_INPUT: {
+                        restoreCanvasStroke(parsed.stroke);
+                        break;
+                    }
+                    case IncomingEvents.RECORDING_STARTED: {
+                        toast.info(`Meeting is being recorded by the organiser.`, { id: "recording" });
+                        setIsRecording(true);
+                        break;
+                    }
+                    case IncomingEvents.RECORDING_STOPPED: {
+                        toast.info(`Recording has been stopped by the organiser.`, { id: "recording" });
+                        setIsRecording(false);
+                        break;
+                    }
+                    case IncomingEvents.USER_LEFT: {
+                        router.push(`/meeting?meetingId=${meetingId}`);
+                        break;
+                    }
+
+                    default:
+                        break;
                 }
+
             }
         }
-    }, [ws, restoreCanvasStroke])
+    }, [ws, restoreCanvasStroke, meetingId, router])
 
     useEffect(() => {
         const canvas = canvasRef.current
@@ -154,6 +176,7 @@ export default function Whiteboard() {
                     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
                     canvas.width = window.innerWidth
                     canvas.height = window.innerHeight
+
                     ctx.putImageData(imageData, 0, 0)
                 }
             }
@@ -163,6 +186,21 @@ export default function Whiteboard() {
         return () => window.removeEventListener('resize', handleResize)
     }, [])
 
+
+
+    useEffect(() => {
+
+        if (ws && ws.socket) {
+            ws.socket.onopen = () => {
+                ws.socket!.send(JSON.stringify({
+                    type: 'ping-check',
+                    data: {
+                        meetingId
+                    }
+                }))
+            }
+        }
+    }, [ws, ws?.socket, meetingId]);
 
     const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
         if (!isDrawing) { return; }
@@ -178,7 +216,7 @@ export default function Whiteboard() {
                     ctx.strokeStyle = color
                     ctx.lineWidth = size
                 }
-                ctx.globalAlpha = opacity
+                ctx.globalAlpha = 1
                 ctx.lineTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY)
                 ctx.stroke();
                 drawAndUpdate({
@@ -193,12 +231,23 @@ export default function Whiteboard() {
         }
     }
 
+    useEffect(() => {
+        if (!divRef.current) {
+            return;
+        }
+        const dimensions = divRef.current?.getBoundingClientRect();
+        console.log(divRef.current?.clientHeight)
+        console.log(divRef.current?.clientWidth)
+        console.log(dimensions?.height)
+        console.log(dimensions?.width)
+    }, [divRef.current])
 
 
     const startRecording = () => {
+
         if (ws && ws.socket) {
             ws.socket.send(JSON.stringify({
-                type: "start-recording",
+                type: OutgoingEvents.START_RECORDING,
                 data: {
                     initialStrokes: paths
                 }
@@ -208,18 +257,16 @@ export default function Whiteboard() {
     const stopRecording = () => {
         if (ws && ws.socket) {
             ws.socket.send(JSON.stringify({
-                type: "stop-recording",
+                type: OutgoingEvents.STOP_RECORDING,
             }))
         }
     }
 
     const drawAndUpdate = useCallback((data: CanvasStroke) => {
-        setPaths((prev) => [...prev, {
-            ...data
-        }]);
+        setPaths((prev) => [...prev, data]);
         if (ws && ws.socket) {
             ws?.socket?.send(JSON.stringify({
-                type: "stroke-input",
+                type: OutgoingEvents.STROKE_INPUT,
                 data: {
                     stroke: { ...data }
                 }
@@ -242,8 +289,8 @@ export default function Whiteboard() {
     }
 
     return (
-        <div className="flex flex-col h-full w-full relative">
-            <div className={cn("flex justify-between h-[50px] absolute transition-all duration-500 w-full items-center p-4 border-b border-b-black/15",
+        <div className="flex flex-col h-full w-full relative overflow-auto border border-black/35" ref={divRef}>
+            <div className={cn("flex justify-between h-[50px] absolute transition-all duration-500 w-full items-center p-4 border-b border-b-black/15 bg-white",
                 openTool ? "top-0" : "top-[-50px]"
             )}>
 
@@ -265,10 +312,11 @@ export default function Whiteboard() {
                 >
                     {isRecording ? <>
                         <div className='h-3 w-3 bg-red-500 rounded-full'></div>
-                        <p>Recording</p>
+                        <p className='text-xs'>Recording...
+                        </p>
                     </> : <>
                         <VideoIcon />
-                        <p>Record</p>
+                        <p className='text-xs'>Record</p>
                     </>}
                 </Button>
 
@@ -278,7 +326,7 @@ export default function Whiteboard() {
                             key={c}
                             variant={"outline"}
                             size={"icon"}
-                            className={`w-8 h-8 rounded-full ${color === c ? 'ring-1 ring-offset-1 ring-gray-400' : ''}`}
+                            className={`w-6 h-6 border border-black/25 rounded-full ${color === c ? 'ring-1 ring-offset-1 ring-gray-400' : ''}`}
                             style={{ backgroundColor: c }}
                             onClick={() => {
                                 setIsErasing(false);
@@ -289,15 +337,15 @@ export default function Whiteboard() {
                     <Button
                         variant={"outline"}
                         size={"icon"}
-                        className={`w-8 h-8 rounded-full bg-white flex items-center justify-center ${isErasing ? 'ring-1 ring-offset-1 ring-gray-400' : ''}`}
+                        className={`w-6 h-6 rounded-full border border-black/25  bg-white flex items-center justify-center ${isErasing ? 'ring-1 ring-offset-1 ring-gray-400' : ''}`}
                         onClick={() => setIsErasing(true)}
                     >
-                        <Eraser className="w-5 h-5 text-gray-600" />
+                        <Eraser strokeWidth={1} className="w-5 h-5 text-gray-600" />
                     </Button>
                 </div>
                 <div className="flex items-center space-x-4">
-                    <div className="flex items-center space-x-2">
-                        <span className="text-sm font-medium">{isErasing ? 'Eraser' : 'Brush'} Size:</span>
+                    <div className="flex flex-col gap-y-2 items-center space-x-2">
+                        <span className="text-xs font-medium">{isErasing ? 'Eraser' : 'Brush'} Size:</span>
                         {
                             isErasing ? <Slider
                                 min={1}
@@ -316,19 +364,7 @@ export default function Whiteboard() {
                             />
                         }
                     </div>
-                    {!isErasing && (
-                        <div className="flex items-center space-x-2">
-                            <span className="text-sm font-medium">Opacity:</span>
-                            <Slider
-                                min={0.1}
-                                max={1}
-                                step={0.1}
-                                value={[opacity]}
-                                onValueChange={(value) => setOpacity(value[0])}
-                                className="w-32"
-                            />
-                        </div>
-                    )}
+
                 </div>
             </div>
             <canvas
@@ -336,6 +372,10 @@ export default function Whiteboard() {
                 width={window.innerWidth}
                 height={window.innerHeight}
                 className="flex-grow cursor-crosshair"
+                style={{
+                    backgroundImage: "url(https://wallpapercave.com/w/wp9969379.jpg)",
+                    objectFit: "contain"
+                }}
                 onMouseDown={startDrawing}
                 onMouseMove={draw}
                 onMouseUp={stopDrawing}

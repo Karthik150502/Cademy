@@ -46,8 +46,12 @@ export type LeaveMeeting = {
     meetingId: string
 }
 
+export type StartRecordingPlay = {
+    recordingId: string
+}
 
-export type IncomingData = JoinMeeting & LeaveMeeting & WhiteboardUpdate & RecordStrokesType;
+
+export type IncomingData = JoinMeeting & LeaveMeeting & WhiteboardUpdate & RecordStrokesType & StartRecordingPlay;
 
 
 export enum IncomingEvents {
@@ -57,7 +61,8 @@ export enum IncomingEvents {
     STROKE_INPUT = "stroke-input",
     START_RECORDING = "start-recording",
     STOP_RECORDING = "stop-recording",
-    PING_CHECK = "ping-check"
+    PING_CHECK = "ping-check",
+    PLAY_RECORDING = "start-replay"
 }
 export enum OutgoingEvents {
     RECORDING_STARTED = "recording-started",

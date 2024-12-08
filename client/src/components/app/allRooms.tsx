@@ -1,13 +1,22 @@
 'use client'
 import React from 'react'
-import { Room } from '@prisma/client'
+import { Room, User } from '@prisma/client'
 import { useQuery } from '@tanstack/react-query'
 import { useSession } from 'next-auth/react'
 import { getMeetings } from '@/actions/getAllMeetings'
-import { Loader2 } from 'lucide-react'
+import { Loader, UserCircleIcon } from 'lucide-react'
 import { Button } from '../ui/button'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import Image from 'next/image'
+import moment from 'moment';
+
+type Meeting = Room & {
+    user: Omit<User, 'password'>,
+    _count: {
+        RoomMember: number
+    }
+};
 
 export default function AllRooms() {
 
@@ -19,38 +28,51 @@ export default function AllRooms() {
     })
 
     return (
-        <div className={cn("rounded-xl w-[90%] grid lg:grid-cols-2 sm:grid-cols-1  gap-3 p-4 shadow-inner place-content-start relative")}>
-            {isPending ? <div className='w-full absolute top-10 flex flex-col items-center justify-center gap-y-2'>
-                <Loader2 className="animate-spin" />
+        <div className={cn("rounded-xl w-[90%] h-[calc(100vh-165px)] shadow-inner relative")}>
+            {isPending ? <div className='w-full absolute top-10 flex flex-col items-center justify-center gap-y-1 '>
+                <Loader className="animate-spin" />
                 <p>Fetching user rooms, kinldy wait....</p>
-            </div> : <>
+            </div> : <div className='w-full h-full grid lg:grid-cols-2 sm:grid-cols-1 gap-3 place-content-center place-items-start relative overflow-auto no-scrollbar px-4 pb-4 pt-20 lg:pt-4'>
                 {
-                    data.rooms && data.rooms.map(({ room }: { room: Room }) => {
+                    (data && data.rooms) && data.rooms.map(({ room }: { room: Meeting }) => {
                         return <RoomCard key={room.id} room={room} />
                     })
                 }
-            </>
+            </div>
             }
         </div>
     )
 }
 
-
-
-
-
-
-
 export function RoomCard({ room }: {
-    room: Room
+    room: Meeting
 }) {
 
     const router = useRouter();
 
     return (
-        <div className='h-auto rounded-md shadow-xl flex flex-col items-center justify-between p-4'>
-            <pre className='text-black'>{JSON.stringify(room, null, 4)}</pre>
+        <div className='h-auto w-full rounded-md shadow-xl flex flex-col items-center justify-between p-4'>
+            <div className='w-full flex flex-col items-start justify-center P-4'>
+                <p className='text-lg font-bold'>
+                    {room.title}
+                </p>
+                <div className='flex items-start justify-start gap-x-2 w-full'>
+                    {
+                        room.user.image ? <Image src={room.user.image} height={25} width={25} alt={room.user.name || ""} className={"rounded-full h-[35px] w-[35px]"} /> : <UserCircleIcon size={38} strokeWidth={1} />
+                    }
+                    <div className='flex flex-col justify-center items-start'>
+                        <p className='text-xs'>Organised by {room.user.name} | {room.user.email}</p>
+                        <p className='text-[11px] text-muted-foreground'>Attendees: {room._count.RoomMember}</p>
+                    </div>
+                </div>
+                <div className='flex items-center justify-end gap-x-2 w-full'>
+                    <p className='text-xs text-muted-foreground'>
+                        {moment(room.createdAt).fromNow()}
+                    </p>
+                </div>
+            </div>
             <Button
+                size={"sm"}
                 onClick={() => {
                     router.push(`/meeting?meetingId=${room.id}`)
                 }}

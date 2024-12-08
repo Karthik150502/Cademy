@@ -10,9 +10,11 @@ const wss = new WebSocketServer({
 })
 
 
-wss.on("connection", (ws: WebSocket) => {
-    console.log(`User connected on....`);
-    const user: User = new User(ws);
+wss.on("connection", (ws: WebSocket, req: Request) => {
+    const urlParams = new URLSearchParams(req.url.split('?')[1]);
+    const userId = urlParams.get('userId');
+    const user: User = new User(ws, userId!);
+    console.log(`User connected on....${user.id}`);
     ws.on("error", (error) => {
         console.log("Error connecting to the Websocket connection.");
         console.error(error);

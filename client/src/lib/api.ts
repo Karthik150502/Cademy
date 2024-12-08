@@ -1,6 +1,6 @@
 export class Api {
-    static readonly BACKEND_URL: string = process.env.BACKEND_SERVER!;
-    static readonly APP_SERVER: string = process.env.APP_SERVER!;
+    static readonly BACKEND_URL: string = process.env.NEXT_PUBLIC_BACKEND_SERVER!;
+    static readonly APP_SERVER: string = process.env.NEXT_PUBLIC_APP_SERVER!;
 }
 
 

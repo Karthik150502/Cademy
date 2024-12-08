@@ -4,12 +4,10 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { Env } from "./config";
 import prisma from "@/packages/prisma";
 import { compare } from "bcryptjs";
-import { sign, decode, JwtPayload } from 'jsonwebtoken'
+import { sign, JwtPayload } from 'jsonwebtoken'
 import { AdapterUser } from "next-auth/adapters";
 import { setAccessToken } from "@/actions/setAccessToken";
 import { signOutUser } from "@/actions/signOut";
-import jose from "jose";
-import { refreshAccess } from "@/actions/refreshAccess";
 
 
 export const authOptions = {
@@ -102,7 +100,8 @@ export const authOptions = {
                     newUser = await prisma.user.create({
                         data: {
                             name: user.name,
-                            email: user.email as string
+                            email: user.email as string,
+                            image: user.image
                         }
                     });
 

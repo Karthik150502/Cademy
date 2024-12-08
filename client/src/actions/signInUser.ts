@@ -14,7 +14,7 @@ export async function signInUser({
             email,
             password,
             redirect: true,
-            redirectTo: "/"
+            redirectTo: "/dashboard"
         })
     } catch (e) {
         if (isRedirectError(e)) {

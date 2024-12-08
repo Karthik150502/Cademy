@@ -4,12 +4,11 @@ import { MeetingManager } from "./meetingManager";
 import { WsHandler } from "./wsHandler";
 export class User {
 
-    public id: string | null = null;
+    public id: string;
     public meetingId: string | null = null;
     private wsHandler: WsHandler | null;
-    constructor(private ws: WebSocket) {
-        // this.ws = ws;
-        // this.initialize();
+    constructor(private ws: WebSocket, userId: string) {
+        this.id = userId;
         this.wsHandler = new WsHandler(this, ws);
     }
 
@@ -25,7 +24,6 @@ export class User {
     }
 
     public sendMessage(jsonString: string) {
-        // this.ws.send(jsonString);
         this.wsHandler?.sendMessage(jsonString);
     }
 
@@ -43,7 +41,6 @@ export class User {
             }
             switch (parsed.type) {
                 case IncomingEvents.JOIN_MEETING: {
-                    this.id = parsed.data.userId;
                     console.log("User joined... = ", this.id);
                     MeetingManager.addUser(parsed.data.meetingId, this);
                     const meeting = MeetingManager.getMeeting(this.meetingId!);
@@ -111,14 +108,13 @@ export class User {
 
 
     destroy() {
-        // Deleting the in-memory meetings data if the orgniaser leaves the meeting. 
+        // Deleting the in-memory meetings data if the organiser leaves the meeting. 
         if (MeetingManager.getMeeting(this.meetingId!)?.organiserId === this.id) {
             MeetingManager.removeMeetingsData(this.meetingId!);
         }
-        // this.ws.close();
+        this.ws.close();
         this.wsHandler?.closeWs();
         MeetingManager.removeUser(this.getMeetingId()!, this)
-        // TODO: remove from the meetings data
     }
 
 

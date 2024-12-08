@@ -5,14 +5,38 @@ const app = Router();
 
 app.get("/", authMiddleware, async (req: Request, res: Response) => {
 
+
+
+
     const rooms = await prisma.roomMember.findMany({
         where: {
             userId: req.user?.id!
         },
         select: {
-            room: true
+            room: {
+                select: {
+                    id: true,
+                    title: true,
+                    createdAt: true,
+                    user: {
+                        select: {
+                            id: true,
+                            name: true,
+                            image: true,
+                            email: true
+                        }
+                    },
+                    _count: {
+                        select: {
+                            RoomMember: true, // Count the number of members in the room
+                        },
+                    },
+                },
+
+            }
         }
     });
+
 
     res.json({
         status: 200,
@@ -30,7 +54,42 @@ app.get("/:meetingId", authMiddleware, async (req: Request, res: Response) => {
     const room = await prisma.room.findUnique({
         where: {
             id: meetingId
+        },
+        include: {
+            user: {
+                select: {
+                    name: true,
+                    image: true,
+                    email: true
+                }
+            },
+            RoomMember: {
+                select: {
+                    user: {
+                        select: {
+                            email: true,
+                            name: true,
+                            image: true
+                        }
+                    }
+                }
+            }
         }
+        // select: {
+        //     organiser: true,
+        //     createdAt: true,
+        //     RoomMember: {
+        //         select: {
+        //             user: {
+        //                 select: {
+        //                     email: true,
+        //                     name: true,
+        //                     image: true
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
     });
 
     if (!room) {

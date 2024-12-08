@@ -17,6 +17,9 @@ export class KafkaHandler {
     public getProducer() {
         return this.producer;
     }
+    public getConsumer(groupId: string, userId: string) {
+        return this.kafka.consumer({ groupId: `${groupId}-${userId}` });
+    }
 
 
     public static getInstance() {
@@ -32,21 +35,29 @@ export class KafkaHandler {
         await instance.admin.connect();
         await instance.admin.createTopics({
             topics: [{
-                topic: topic
+                topic: topic,
+                numPartitions: 1,
+                replicationFactor: 1,
+                configEntries: [
+                    { name: 'retention.ms', value: '-1' }, // Retain logs forever
+                ],
             }]
         })
         await instance.admin.disconnect();
     }
 
-    public static produceToTopic(topic: string, payload: string) {
+    public static async produceToTopic(topic: string, payload: string) {
         const producer = this.getInstance().getProducer();
-        producer.send({
+        await producer.connect();
+        await producer.send({
             topic,
             messages: [
                 { value: payload },
             ]
         })
     }
+
+
 
 
     public static async disconnect() {

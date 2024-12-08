@@ -1,6 +1,8 @@
 'use client'
 
 
+import { Env } from '@/lib/config';
+import { useSession } from 'next-auth/react';
 import React, { useContext, useEffect, useState } from 'react'
 
 type WsProps = {
@@ -11,9 +13,11 @@ export const WsContext = React.createContext<WsProps | null>(null);
 
 export default function WsProvider({ children }: { children: React.ReactNode }) {
 
+
+    const { data } = useSession();
     const [socket, setSocket] = useState<WebSocket | null>(null);
     useEffect(() => {
-        const state = new WebSocket("http://localhost:8001");
+        const state = new WebSocket(`${Env.WsServer}?userId=${data?.user?.id}`);
         setSocket(state);
         return () => {
             state.close();

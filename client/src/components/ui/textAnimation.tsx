@@ -6,9 +6,9 @@ export default function LandingText({ children, size }: { children: string, size
     console.log("hello")
 
     return (
-        <div className='text-center max-w-xs mx-auto
+        <div className='text-center w-full mx-auto
     '>
-            <p className='text-black bg-clip-text bg-gradient-to-bl from-purple-950 via-purple-600 to-purple-300'
+            <p className='text-black bg-clip-text bg-gradient-to-bl from-purple-950 via-purple-600 to-purple-300 w-full'
                 style={{
                     fontSize: size + 'px',
                 }}
