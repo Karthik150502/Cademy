@@ -9,8 +9,8 @@ export class RedisManager {
     private constructor() { }
 
 
-    public static async pushStrokeToRedis(meetingId: string, stroke: CanvasStroke) {
-        await this.redis.rpush(`strokes:${meetingId}`, JSON.stringify(stroke));
+    public static async pushStrokeToRedis(meetingId: string, payload: string) {
+        await this.redis.rpush(`strokes:${meetingId}`, payload);
     }
 
     public static startStrokeFetchFromRedis(meetingId: string, recordingId: string) {

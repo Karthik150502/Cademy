@@ -63,7 +63,7 @@ export class User {
                     break;
                 }
                 case IncomingEvents.STROKE_INPUT: {
-                    MeetingManager.updateWhiteboard(this.id!, parsed.data.stroke, this.meetingId!);
+                    MeetingManager.updateWhiteboard(parsed.data.stroke, this.meetingId!);
                     break;
                 }
                 case IncomingEvents.START_RECORDING: {
@@ -74,12 +74,6 @@ export class User {
                             startedBy: this.id
                         }
                     }))
-                    // MeetingManager.broadcast(this.id!, this.meetingId!, JSON.stringify({
-                    //     type: "recording-started",
-                    //     data: {
-                    //         startedBy: this.id
-                    //     }
-                    // }));
                     break;
                 }
                 case IncomingEvents.STOP_RECORDING: {
@@ -91,12 +85,19 @@ export class User {
                             startedBy: this.id
                         }
                     }))
-                    // MeetingManager.broadcast(this.id!, this.meetingId!, JSON.stringify({
-                    //     type: "recording-stopped",
-                    //     data: {
-                    //         startedBy: this.id
-                    //     }
-                    // }));
+                    break;
+                }
+                case IncomingEvents.PING_CHECK: {
+                    const meetingId = parsed.data.meetingId;
+                    console.log("Check user")
+                    if (!MeetingManager.checkUserPresentInMeeting(meetingId)) {
+                        this.wsHandler?.sendMessage(JSON.stringify({
+                            type: "user-left",
+                            data: {
+                                meetingId: meetingId
+                            }
+                        }))
+                    }
                     break;
                 }
 

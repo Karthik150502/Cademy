@@ -2,6 +2,7 @@ import { User } from "./user";
 import { MeetingManager } from "./meetingManager";
 import WebSocket from "ws";
 import { IncomingData, IncomingEvents, IncomingMessageType, OutgoingEvents } from "../types";
+import { KafkaHandler } from "./kafkaHandler";
 export class WsHandler {
     constructor(private user: User, private ws: WebSocket) {
         this.user = user;
@@ -9,15 +10,15 @@ export class WsHandler {
         this.initialize();
     }
     public broadcast(meetingId: string, jsonString: string) {
-        let meetingInfo = MeetingManager.getMeeting(meetingId)!
+        let meetingInfo = MeetingManager.getMeeting(meetingId)!;
         if (!meetingInfo) {
             return;
         }
         const userId = this.user.id!;
         Object.entries(meetingInfo.members).forEach(([peerId, peer]: [string, User]) => {
             if (userId !== peerId) {
-                console.log(`Broadcasted to ${peer.id}`)
-                peer.sendMessage(jsonString)
+                console.log(`Broadcasted to ${peer.id}`);
+                peer.sendMessage(jsonString);
             }
         })
     }
@@ -28,7 +29,7 @@ export class WsHandler {
         }
 
         Object.entries(meetingInfo.members).forEach(([_, peer]: [string, User]) => {
-            peer.sendMessage(jsonString)
+            peer.sendMessage(jsonString);
         })
     }
 
@@ -49,7 +50,7 @@ export class WsHandler {
             try {
                 parsed = JSON.parse(message.data.toString());
             } catch {
-                console.log("Malformed JSON.")
+                console.log("Malformed JSON.");
                 return;
             }
 
@@ -77,7 +78,7 @@ export class WsHandler {
                     break;
                 }
                 case IncomingEvents.STROKE_INPUT: {
-                    MeetingManager.updateWhiteboard(this.user.id!, parsed.data.stroke, this.user.meetingId!);
+                    MeetingManager.updateWhiteboard(parsed.data.stroke, this.user.meetingId!);
                     this.broadcast(this.user.meetingId!, JSON.stringify({
                         type: OutgoingEvents.STROKE_INPUT,
                         stroke: parsed.data.stroke
@@ -86,6 +87,7 @@ export class WsHandler {
                 }
                 case IncomingEvents.START_RECORDING: {
                     await MeetingManager.startRecording(this.user.meetingId!, parsed.data.initialStrokes);
+                    await KafkaHandler.createTopic(`whiteboard-${this.user.meetingId!}`)
                     MeetingManager.broadcast(this.user.id!, this.user.meetingId!, JSON.stringify({
                         type: OutgoingEvents.RECORDING_STARTED,
                         data: {
@@ -97,6 +99,7 @@ export class WsHandler {
                 case IncomingEvents.STOP_RECORDING: {
                     console.log("Recording stopped");
                     await MeetingManager.stopRecording(this.user.meetingId!);
+                    await KafkaHandler.disconnect();
                     MeetingManager.broadcast(this.user.id!, this.user.meetingId!, JSON.stringify({
                         type: OutgoingEvents.RECORDING_STOPPED,
                         data: {

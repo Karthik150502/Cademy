@@ -2,6 +2,7 @@ import { WebSocket } from "ws";
 import { User } from "./user";
 import { CanvasStroke, MeetingInfoType, MeetingsType } from "../types";
 import { RedisManager } from "./redisManagerWhiteboard";
+import { KafkaHandler } from "./kafkaHandler";
 
 
 
@@ -54,16 +55,14 @@ export class MeetingManager {
     static getInstance() {
         return this.instance;
     }
-    static updateWhiteboard(userId: string, stroke: CanvasStroke, meetingId: string) {
+    static updateWhiteboard(stroke: CanvasStroke, meetingId: string) {
         const meeting = this.meetings.get(meetingId);
         if (meeting?.isRecording) {
-            RedisManager.pushStrokeToRedis(meetingId, stroke);
+            const payload = JSON.stringify(stroke)
+            RedisManager.pushStrokeToRedis(meetingId, payload);
+            KafkaHandler.produceToTopic(`whiteboard-${meetingId}`, payload);
         }
         meeting!.whiteBoardState.push(stroke);
-        // this.broadcast(userId, meetingId, JSON.stringify({
-        //     type: 'stroke-input',
-        //     stroke
-        // }));
     }
 
     static async startWhiteBoardRecording(meetingId: string, initialState: CanvasStroke[]) {
@@ -111,4 +110,13 @@ export class MeetingManager {
         })
     }
 
+
+
+    static checkUserPresentInMeeting(meetingId: string) {
+        let meeting = this.meetings.get(meetingId);
+        if (!meeting) {
+            return false;
+        }
+        return true;
+    }
 }

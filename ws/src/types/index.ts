@@ -57,6 +57,7 @@ export enum IncomingEvents {
     STROKE_INPUT = "stroke-input",
     START_RECORDING = "start-recording",
     STOP_RECORDING = "stop-recording",
+    PING_CHECK = "ping-check"
 }
 export enum OutgoingEvents {
     RECORDING_STARTED = "recording-started",
