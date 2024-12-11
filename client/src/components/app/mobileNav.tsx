@@ -2,6 +2,7 @@
 import React, { useState } from 'react'
 import {
     Sheet,
+    SheetClose,
     SheetContent,
     SheetDescription,
     SheetHeader,
@@ -33,18 +34,31 @@ export default function MobileNav() {
                         <Logo />
                     </SheetTitle>
                     <SheetDescription className='flex flex-col items-center justify-center gap-y-4 py-4 border-t border-t-black/15'>
-                        <JoinRoomDialog />
-                        <CreateRoomDialog />
-                        <p className='cursor-pointer  text-xs opacity-70 hover:opacity-100 transition-opacity duration-300'
-                            onClick={() => {
-                                signOut();
-                            }}
-                        >
-                            Log Out
-                        </p>
-                        <Link href={"/dashboard/recordings"} className='cursor-pointer text-xs opacity-70 hover:opacity-100 transition-opacity duration-300'>
-                            Recordings
-                        </Link>
+                        <SheetClose asChild>
+                            <Link href={"/dashboard"} className='cursor-pointer text-xs opacity-70 hover:opacity-100 transition-opacity duration-300'>
+                                Dashboard
+                            </Link>
+                        </SheetClose>
+                        <SheetClose asChild>
+                            <JoinRoomDialog />
+                        </SheetClose>
+                        <SheetClose asChild>
+                            <CreateRoomDialog />
+                        </SheetClose>
+                        <SheetClose asChild>
+                            <p className='cursor-pointer  text-xs opacity-70 hover:opacity-100 transition-opacity duration-300'
+                                onClick={() => {
+                                    signOut();
+                                }}
+                            >
+                                Log Out
+                            </p>
+                        </SheetClose>
+                        <SheetClose asChild>
+                            <Link href={"/dashboard/recordings"} className='cursor-pointer text-xs opacity-70 hover:opacity-100 transition-opacity duration-300'>
+                                Recordings
+                            </Link>
+                        </SheetClose>
                     </SheetDescription>
                 </SheetHeader>
             </SheetContent>

@@ -26,6 +26,7 @@ import { Button } from '../ui/button';
 import { Loader2 } from 'lucide-react';
 import { Input } from '../ui/input';
 import { useRouter } from 'next/navigation';
+import { create_Stream_and_Room } from '@/actions/livekit/create_stream';
 export default function CreateRoomDialog() {
 
     const [open, setOpen] = useState<boolean>(false);
@@ -36,11 +37,11 @@ export default function CreateRoomDialog() {
         defaultValues: {}
     })
 
-
     const { mutate, isPending } = useMutation({
         mutationFn: async (form: CreateRoomSchemaType) => {
-            await createRoom({
+            await create_Stream_and_Room({
                 title: form.title,
+                name: form.name
             })
         },
         onSuccess: () => {
@@ -48,7 +49,8 @@ export default function CreateRoomDialog() {
             setOpen(false);
         },
         onError: (e) => {
-            toast.error(`Failed to create a Meeting: ${e.message}`, { id: "create-meeting" })
+            toast.error(`Failed to create a Meeting: ${e.message}`, { id: "create-meeting" });
+            setOpen(false);
         }
     });
 
@@ -85,6 +87,24 @@ export default function CreateRoomDialog() {
                                     </FormLabel>
                                     <FormControl>
                                         <Input {...field} placeholder='daily standup...' />
+                                    </FormControl>
+                                    <FormMessage className='text-xs w-full text-right' />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="name"
+                            render={({ field }) => (
+                                <FormItem
+                                    className='w-full'
+                                >
+                                    <FormLabel className='flex gap-1 text-xs items-center'>
+                                        Name
+                                        <p className='text-xs font-extrabold text-black/70'>(required)</p>
+                                    </FormLabel>
+                                    <FormControl>
+                                        <Input {...field} placeholder='Steve Roger...' />
                                     </FormControl>
                                     <FormMessage className='text-xs w-full text-right' />
                                 </FormItem>

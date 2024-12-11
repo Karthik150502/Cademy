@@ -1,7 +1,6 @@
 import Redis from "ioredis";
 import prisma from "../lib/prisma";
 import { CanvasStroke } from "../types";
-import { Prisma } from "@prisma/client";
 export class RedisManager {
 
     private static redis: Redis = new Redis()

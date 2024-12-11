@@ -22,8 +22,8 @@ wss.on("connection", (ws: WebSocket, req: Request) => {
 
 
 
-    ws.onclose = () => {
+    ws.onclose = async () => {
         console.log("User disconnected....", user.id!);
-        user.destroy();
+        await user.destroy();
     }
 })

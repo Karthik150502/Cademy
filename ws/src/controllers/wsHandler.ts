@@ -1,8 +1,6 @@
-import { User } from "./user";
-import { MeetingManager } from "./meetingManager";
+import { MeetingManager, User, Player } from "./index";
 import WebSocket from "ws";
 import { IncomingData, IncomingEvents, IncomingMessageType, OutgoingEvents } from "../types";
-import { Player } from "./player";
 export class WsHandler {
 
     private player: Player | null = null;
@@ -20,7 +18,6 @@ export class WsHandler {
         const userId = this.user.id!;
         Object.entries(meetingInfo.members).forEach(([peerId, peer]: [string, User]) => {
             if (userId !== peerId) {
-                console.log(`Broadcasted to ${peer.id}`);
                 peer.sendMessage(jsonString);
             }
         })
@@ -42,8 +39,9 @@ export class WsHandler {
     }
 
 
-    public closeWs() {
+    public async closeWs() {
         this.ws.close();
+        await this.player?.disconnect();
         this.player = null;
     }
 
@@ -112,12 +110,33 @@ export class WsHandler {
                 case IncomingEvents.PLAY_RECORDING: {
                     const recordingId = parsed.data.recordingId;
                     console.log(`Replaying the strokes for whiteboard-${recordingId}`);
-                    const startingTime = await this.user.getRecordingStartingTime(recordingId);
-                    this.player = new Player(recordingId, this.user.id);
-                    this.ws.send(JSON.stringify({
-                        type: OutgoingEvents.STARTING_REPLAY
+                    const recording = await this.user.getRecordingStartingTime(recordingId);
+                    if (!recording) {
+                        // TODO: Handle recording not found.
+                        return;
+                    }
+
+                    const { createdAt, initialState } = recording;
+                    this.sendMessage(JSON.stringify({
+                        type: "replay-initialstate",
+                        payload: {
+                            initialState
+                        }
                     }))
-                    this.player.play(startingTime!);
+                    this.player = new Player(this, recordingId, createdAt);
+                    await this.player.play();
+                    break;
+                }
+                case IncomingEvents.PLAY: {
+                    this.sendMessage(JSON.stringify({
+                        type: "play",
+                    }))
+                    await this.player?.play();
+                    break;
+                }
+                case IncomingEvents.PAUSE: {
+                    let offSet = parsed.data.offSet;
+                    await this.player?.pause(offSet);
                     break;
                 }
 

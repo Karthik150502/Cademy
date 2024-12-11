@@ -25,7 +25,6 @@ export default function Whiteboard({ meetingId }: { meetingId: string }) {
     const [isRecording, setIsRecording] = useState<boolean>(false);
     const [gWhiteBoard, setGWhiteBoard] = useRecoilState(WhiteBoarsInitialState);
     const ws = useWS();
-    const divRef = useRef<HTMLDivElement | null>(null)
 
 
     const restoreCanvasStroke = useCallback((path: CanvasStroke) => {
@@ -83,6 +82,8 @@ export default function Whiteboard({ meetingId }: { meetingId: string }) {
         setPaths(paths);
         paths.forEach((path: CanvasStroke, index: number) => {
             if (ctx) {
+                ctx.lineJoin = 'round';
+                ctx.lineCap = 'round';
                 if (path.color === "eraser") {
                     ctx.globalCompositeOperation = 'destination-out'
                     ctx.lineWidth = path.size
@@ -176,15 +177,15 @@ export default function Whiteboard({ meetingId }: { meetingId: string }) {
                     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
                     canvas.width = window.innerWidth
                     canvas.height = window.innerHeight
-
-                    ctx.putImageData(imageData, 0, 0)
+                    ctx.putImageData(imageData, 0, 0);
+                    restoreCanvas(paths);
                 }
             }
         }
 
         window.addEventListener('resize', handleResize)
         return () => window.removeEventListener('resize', handleResize)
-    }, [])
+    }, [paths, restoreCanvas])
 
 
 
@@ -209,15 +210,15 @@ export default function Whiteboard({ meetingId }: { meetingId: string }) {
             const ctx = canvas.getContext('2d');
             if (ctx) {
                 if (isErasing) {
-                    ctx.globalCompositeOperation = 'destination-out'
-                    ctx.lineWidth = eraserSize
+                    ctx.globalCompositeOperation = 'destination-out';
+                    ctx.lineWidth = eraserSize;
                 } else {
-                    ctx.globalCompositeOperation = 'source-over'
-                    ctx.strokeStyle = color
-                    ctx.lineWidth = size
+                    ctx.globalCompositeOperation = 'source-over';
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = size;
                 }
                 ctx.globalAlpha = 1
-                ctx.lineTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY)
+                ctx.lineTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
                 ctx.stroke();
                 drawAndUpdate({
                     x: e.nativeEvent.offsetX,
@@ -231,16 +232,6 @@ export default function Whiteboard({ meetingId }: { meetingId: string }) {
         }
     }
 
-    useEffect(() => {
-        if (!divRef.current) {
-            return;
-        }
-        const dimensions = divRef.current?.getBoundingClientRect();
-        console.log(divRef.current?.clientHeight)
-        console.log(divRef.current?.clientWidth)
-        console.log(dimensions?.height)
-        console.log(dimensions?.width)
-    }, [divRef.current])
 
 
     const startRecording = () => {
@@ -274,22 +265,12 @@ export default function Whiteboard({ meetingId }: { meetingId: string }) {
         }
     }, [ws])
 
-    // const printPaths = () => {
-    //     console.log(paths);
-    // }
-
-    // const showMeetings = () => {
-    //     ws?.socket?.send(JSON.stringify({
-    //         type: 'show-meetings'
-    //     }))
-    // }
-
     const stopDrawing = () => {
         setIsDrawing(false)
     }
 
     return (
-        <div className="flex flex-col h-full w-full relative overflow-auto border border-black/35" ref={divRef}>
+        <div className="flex flex-col h-full w-full relative overflow-auto border border-black/35">
             <div className={cn("flex justify-between h-[50px] absolute transition-all duration-500 w-full items-center p-4 border-b border-b-black/15 bg-white",
                 openTool ? "top-0" : "top-[-50px]"
             )}>
@@ -372,10 +353,10 @@ export default function Whiteboard({ meetingId }: { meetingId: string }) {
                 width={window.innerWidth}
                 height={window.innerHeight}
                 className="flex-grow cursor-crosshair"
-                style={{
-                    backgroundImage: "url(https://wallpapercave.com/w/wp9969379.jpg)",
-                    objectFit: "contain"
-                }}
+                // style={{
+                //     backgroundImage: "url(https://wallpapercave.com/w/wp9969379.jpg)",
+                //     objectFit: "contain"
+                // }}
                 onMouseDown={startDrawing}
                 onMouseMove={draw}
                 onMouseUp={stopDrawing}

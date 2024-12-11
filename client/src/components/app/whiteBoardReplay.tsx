@@ -1,20 +1,14 @@
 'use client'
-
 import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { cn } from '@/lib/utils'
-import { ChevronDown } from 'lucide-react'
-import { Button } from '../ui/button'
-import { CanvasStroke, IncomingEvents, OutgoingEvents } from '@/types/whiteboard';
-import { useRecoilState } from 'recoil';
-import { WhiteBoarsInitialState } from '@/store/recoil'
-import { toast } from 'sonner'
-import { useRouter } from 'next/navigation'
+import { ChevronDown, Loader } from 'lucide-react'
+// import { Pause, Play } from 'lucide-react'
+import { CanvasStroke, ReplayIncomingEvents } from '@/types/whiteboard';
 import { useWSWhiteboardReplay } from '@/providers/wsWhiteBoardReplay'
 import { MeetingRecording, Room } from '@prisma/client'
 import { User } from 'next-auth'
 import moment from 'moment'
-const colors = ['black', 'red', 'green', 'blue', 'yellow', "white"];
-
+// import { Button } from '../ui/button';
 
 type SingleRecordingType = MeetingRecording & {
     room: Room & {
@@ -24,17 +18,13 @@ type SingleRecordingType = MeetingRecording & {
 
 export default function WhiteboardReplay({ recordingId, recordingData }: { recordingId: string, recordingData: SingleRecordingType | undefined }) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const [color, setColor] = useState('black');
-    const [size, setSize] = useState(5);
-    const [eraserSize, setEraserSize] = useState(5);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
     const [openTool, setOpenTool] = useState<boolean>(true);
-    const [isDrawing, setIsDrawing] = useState(false);
-    const [isErasing, setIsErasing] = useState(false);
     const [paths, setPaths] = useState<CanvasStroke[]>([]);
-    const [gWhiteBoard, setGWhiteBoard] = useRecoilState(WhiteBoarsInitialState);
+    const [paused, setPaused] = useState<boolean>(false);
+    // const [offSet, setOffset] = useState<string>('0');
+
     const ws = useWSWhiteboardReplay();
-
-
 
     useEffect(() => {
         if (ws && ws.socket) {
@@ -47,10 +37,11 @@ export default function WhiteboardReplay({ recordingId, recordingData }: { recor
         }
     }, [ws, ws?.socket, recordingId])
 
-    const restoreCanvasStroke = useCallback((path: CanvasStroke) => {
-        const canvas = canvasRef.current;
-        const ctx = canvas?.getContext('2d');
+
+    const draw = useCallback((ctx: CanvasRenderingContext2D | null | undefined, path: CanvasStroke, i: number) => {
         if (ctx) {
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
             if (path.color === "eraser") {
                 ctx.globalCompositeOperation = 'destination-out'
                 ctx.lineWidth = path.size
@@ -59,11 +50,12 @@ export default function WhiteboardReplay({ recordingId, recordingData }: { recor
                 ctx.strokeStyle = path.color
                 ctx.lineWidth = path.size
             }
-            if (paths.length === 0 || path.isNewStroke) {
+            ctx.globalAlpha = 1
+            if (i === 0 || path.isNewStroke) {
                 ctx.beginPath();
                 ctx.moveTo(path.x, path.y);
             } else {
-                const prevPath = paths[paths.length - 1];
+                const prevPath = paths[i - 1];
                 if (prevPath) {
                     ctx.beginPath();
                     ctx.moveTo(prevPath.x, prevPath.y);
@@ -71,37 +63,44 @@ export default function WhiteboardReplay({ recordingId, recordingData }: { recor
                     ctx.stroke();
                 }
             }
-        };
-        setPaths((prev) => [...prev, path]);
-    }, [paths]);
-
-    const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
-        const canvas = canvasRef.current
-        if (canvas) {
-            const ctx = canvas.getContext('2d')
-            if (ctx) {
-                ctx.beginPath()
-                ctx.moveTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY)
-                drawAndUpdate({
-                    x: e.nativeEvent.offsetX,
-                    y: e.nativeEvent.offsetY,
-                    color: isErasing ? "eraser" : color,
-                    size: isErasing ? eraserSize : size,
-                    timeStamp: (new Date()).getTime(),
-                    isNewStroke: true,
-                })
-                ctx.stroke();
-                setIsDrawing(true)
-            }
         }
-    };
+    }, [paths])
 
-    const restoreCanvas = useCallback((paths: CanvasStroke[]) => {
+
+    // const seekToPoint = useCallback((seekIndex: number) => {
+    //     const canvas = canvasRef.current;
+    //     if (canvas) {
+    //         const ctx = canvas.getContext('2d');
+    //         if (ctx) {
+    //             // Clear the canvas
+    //             ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    //             // Redraw up to the specified index
+    //             for (let i = 0; i <= seekIndex; i++) {
+    //                 const path = paths[i];
+    //                 if (path) {
+    //                     draw(ctx, path, i);
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }, [paths, draw]);
+
+    const restoreCanvasStroke = useCallback((path: CanvasStroke) => {
         const canvas = canvasRef.current;
         const ctx = canvas?.getContext('2d');
-        setPaths(paths);
-        paths.forEach((path: CanvasStroke, index: number) => {
+        draw(ctx, path, paths.length);
+        setPaths((prev) => [...prev, path]);
+    }, [paths, draw]);
+
+    const restoreCanvas = useCallback((strokePaths: CanvasStroke[]) => {
+        const canvas = canvasRef.current;
+        const ctx = canvas?.getContext('2d');
+        setPaths(strokePaths);
+        strokePaths.forEach((path: CanvasStroke, i: number) => {
             if (ctx) {
+                ctx.lineJoin = 'round';
+                ctx.lineCap = 'round';
                 if (path.color === "eraser") {
                     ctx.globalCompositeOperation = 'destination-out'
                     ctx.lineWidth = path.size
@@ -111,11 +110,11 @@ export default function WhiteboardReplay({ recordingId, recordingData }: { recor
                     ctx.lineWidth = path.size
                 }
                 ctx.globalAlpha = 1
-                if (index === 0 || path.isNewStroke) {
+                if (i === 0 || path.isNewStroke) {
                     ctx.beginPath();
                     ctx.moveTo(path.x, path.y);
                 } else {
-                    const prevPath = paths[index - 1];
+                    const prevPath = strokePaths[i - 1];
                     if (prevPath) {
                         ctx.beginPath();
                         ctx.moveTo(prevPath.x, prevPath.y);
@@ -127,47 +126,73 @@ export default function WhiteboardReplay({ recordingId, recordingData }: { recor
         })
     }, []);
 
-    useEffect(() => {
-        const pathString = window.localStorage.getItem("stroke_paths");
-        if (!pathString) { return }
-        const paths = JSON.parse(pathString);
-        if (paths) {
-            restoreCanvas(paths);
-        }
-    }, [restoreCanvas]);
 
-    useEffect(() => {
-        if (gWhiteBoard.length > 0) {
-            restoreCanvas(gWhiteBoard);
-            setGWhiteBoard([]);
-        }
-    }, [gWhiteBoard, restoreCanvas, setGWhiteBoard]);
+
+    // const pauseOrPlay = useCallback(() => {
+    //     if (paused) {
+    //         ws?.socket?.send(JSON.stringify({
+    //             type: "play",
+    //             data: {
+    //                 offSet
+    //             }
+    //         }))
+    //         setPaused(false);
+    //     } else {
+    //         ws?.socket?.send(JSON.stringify({
+    //             type: "pause",
+    //             data: {
+    //                 offSet
+    //             }
+    //         }))
+    //         setPaused(true);
+    //     }
+    // }, [offSet, paused, ws?.socket])
 
     useEffect(() => {
         if (ws?.socket) {
             ws.socket.onmessage = ({ data }) => {
                 const parsed = JSON.parse(data.toString());
                 switch (parsed.type) {
-                    case IncomingEvents.STROKE_REPLAY: {
-                        restoreCanvasStroke(parsed.stroke);
+                    case ReplayIncomingEvents.STROKE_REPLAY: {
+                        if (!paused) {
+                            restoreCanvasStroke(JSON.parse(parsed.payload) as CanvasStroke);
+                            // setOffset(parsed.offSet);
+                        }
+                        break;
+                    }
+                    case ReplayIncomingEvents.REPLAY_INITIALSTATE: {
+                        const initialState = JSON.parse(parsed.payload.initialState) as CanvasStroke[];
+                        restoreCanvas(initialState);
+                        break;
+                    }
+                    case ReplayIncomingEvents.STARTING_REPLAY: {
+                        setIsLoading(false);
                         break;
                     }
 
+                    case "pause": {
+                        setPaused(true);
+                        break;
+                    }
+                    case "play": {
+                        setPaused(false);
+                        break;
+                    }
                     default:
                         break;
                 }
 
             }
         }
-    }, [ws, restoreCanvasStroke])
+    }, [ws, restoreCanvasStroke, restoreCanvas, paused])
 
     useEffect(() => {
         const canvas = canvasRef.current
         if (canvas) {
             const ctx = canvas.getContext('2d')
             if (ctx) {
-                ctx.lineCap = 'round'
-                ctx.lineJoin = 'round'
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
             }
         }
     }, [])
@@ -181,75 +206,44 @@ export default function WhiteboardReplay({ recordingId, recordingData }: { recor
                     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
                     canvas.width = window.innerWidth
                     canvas.height = window.innerHeight
-
-                    ctx.putImageData(imageData, 0, 0)
+                    ctx.putImageData(imageData, 0, 0);
+                    restoreCanvas(paths);
                 }
             }
         }
 
         window.addEventListener('resize', handleResize)
         return () => window.removeEventListener('resize', handleResize)
-    }, [])
+    }, [paths, restoreCanvas])
 
-
-
-    const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
-        if (!isDrawing) { return; }
-        const canvas = canvasRef.current;
-        if (canvas) {
-            const ctx = canvas.getContext('2d');
-            if (ctx) {
-                if (isErasing) {
-                    ctx.globalCompositeOperation = 'destination-out'
-                    ctx.lineWidth = eraserSize
-                } else {
-                    ctx.globalCompositeOperation = 'source-over'
-                    ctx.strokeStyle = color
-                    ctx.lineWidth = size
-                }
-                ctx.globalAlpha = 1
-                ctx.lineTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY)
-                ctx.stroke();
-                drawAndUpdate({
-                    x: e.nativeEvent.offsetX,
-                    y: e.nativeEvent.offsetY,
-                    color: isErasing ? "eraser" : color,
-                    size: isErasing ? eraserSize : size,
-                    timeStamp: (new Date()).getTime(),
-                    isNewStroke: false
-                })
-            }
-        }
-    }
-
-
-
-
-
-    const drawAndUpdate = useCallback((data: CanvasStroke) => {
-        setPaths((prev) => [...prev, data]);
-        if (ws && ws.socket) {
-            ws?.socket?.send(JSON.stringify({
-                type: OutgoingEvents.STROKE_INPUT,
-                data: {
-                    stroke: { ...data }
-                }
-            }));
-        }
-    }, [ws])
-
-
-    const stopDrawing = () => {
-        setIsDrawing(false)
-    }
 
     return (
         <div className="flex flex-col h-full w-full relative overflow-auto border border-black/35">
             <div className={cn("flex justify-start gap-x-2 h-[50px] absolute transition-all duration-500 w-full items-center p-4 border-b border-b-black/15 bg-white",
                 openTool ? "top-0" : "top-[-50px]"
             )}>
-                <p>{recordingData?.room.title} | </p>
-                <p className='text-xs'>{moment(recordingData?.createdAt).fromNow()}</p>
+                <div className='flex items-center justify-center gap-x-2 h-full'>
+                    <p>{recordingData?.room.title} | </p>
+                    <p className='text-xs'>{moment(recordingData?.createdAt).fromNow()}</p>
+                </div>
+
+
+                {/* <Button className='flex items-center justify-center gap-x-1' variant={"outline"} disabled={isLoading}
+                    onClick={() => {
+                        pauseOrPlay();
+                    }}
+                >
+                    {
+                        paused ? <>
+                            <p className='text-xs'>Play</p>
+                            <Play />
+                        </> : <>
+                            <p className='"text-xs'>Pause</p>
+                            <Pause />
+                        </>
+                    }
+
+                </Button> */}
                 <div className={cn("h-10 w-10 cursor-pointer rounded-full bg-white border border-black/15 opacity-70 transition-all hover:opacity-100 duration-300 flex items-center justify-center absolute -bottom-12 left-[50%]", openTool ? "rotate-0" : "rotate-180")}
                     onClick={() => { setOpenTool(!openTool) }}
                 >
@@ -257,21 +251,28 @@ export default function WhiteboardReplay({ recordingId, recordingData }: { recor
                 </div>
 
             </div>
+            {
+                isLoading && <>
+                    <div className='w-screen absolute z-10 min-h-screen flex items-center justify-center gap-1 backdrop-blur-sm'>
+                        <Loader className='animate-spin' />
+                        <p className='text-muted-foreground text-xs'>Loading...</p>
+                    </div>
+                </>
+            }
+
+
+
             <canvas
                 ref={canvasRef}
                 width={window.innerWidth}
                 height={window.innerHeight}
-                className="flex-grow cursor-crosshair"
+                className="flex-grow cursor-progress"
                 style={{
                     backgroundImage: "",
                     objectFit: "contain"
                 }}
-                onMouseDown={startDrawing}
-                onMouseMove={draw}
-                onMouseUp={stopDrawing}
-                onMouseOut={stopDrawing}
             />
-        </div>
+        </div >
     )
 }
 

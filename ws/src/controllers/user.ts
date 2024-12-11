@@ -1,6 +1,5 @@
 import { WebSocket } from "ws";
-import { MeetingManager } from "./meetingManager";
-import { WsHandler } from "./wsHandler";
+import { MeetingManager, WsHandler } from "./index";
 import prisma from "../lib/prisma";
 export class User {
 
@@ -27,15 +26,15 @@ export class User {
             where: {
                 id: recordingId
             }
-        }))?.createdAt
+        }))
     }
 
-    destroy() {
+    public async destroy() {
         // Deleting the in-memory meetings data if the organiser leaves the meeting. 
         if (MeetingManager.getMeeting(this.meetingId!)?.organiserId === this.id) {
             MeetingManager.removeMeetingsData(this.meetingId!);
         }
-        this.wsHandler?.closeWs();
+        await this.wsHandler?.closeWs();
         MeetingManager.removeUser(this.meetingId!, this)
     }
 

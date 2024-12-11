@@ -8,6 +8,7 @@ export class KafkaHandler {
         brokers: [KAFKA_URL]
     })
 
+
     private producer: Producer = this.kafka.producer();
     private admin: Admin = this.kafka.admin();
     private static instance: KafkaHandler | undefined;
@@ -17,7 +18,7 @@ export class KafkaHandler {
     public getProducer() {
         return this.producer;
     }
-    public getConsumer(groupId: string, userId: string) {
+    public getConsumer(groupId: string) {
         return this.kafka.consumer({ groupId: `${groupId}-${randomUUID()}` });
     }
 

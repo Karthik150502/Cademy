@@ -6,36 +6,6 @@ const app = Router();
 
 app.get("/getall", authMiddleware, async (req: Request, res: Response) => {
 
-
-    // const roomIdData = await prisma.roomMember.findMany({
-    //     where: {
-    //         userId: req.user?.id!
-    //     },
-    //     select: {
-    //         room: {
-    //             select: {
-    //                 id: true
-    //             }
-    //         }
-    //     }
-    // })
-    // const roomIds = roomIdData.map(item => item.room.id);
-    // const recordings = await prisma.meetingRecording.findMany({
-    //     where: {
-    //         roomId: {
-    //             in: roomIds
-    //         }
-    //     },
-    //     select: {
-    //         id: true,
-    //         // initialState: true,
-    //         // subsequentStates: true,
-    //         createdAt: true,
-    //     },
-    // });
-
-
-
     const recordings = await prisma.meetingRecording.findMany({
         where: {
             room: {
@@ -48,8 +18,6 @@ app.get("/getall", authMiddleware, async (req: Request, res: Response) => {
         },
         select: {
             id: true,
-            // initialState: true,
-            // subsequentStates: true,
             createdAt: true,
             room: {
                 select: {
@@ -64,6 +32,9 @@ app.get("/getall", authMiddleware, async (req: Request, res: Response) => {
                 }
             }
         },
+        orderBy: {
+            createdAt: 'desc'
+        }
     });
 
     res.json({

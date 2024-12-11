@@ -1,8 +1,6 @@
 import { WebSocket } from "ws";
-import { User } from "./user";
 import { CanvasStroke, MeetingInfoType, MeetingsType } from "../types";
-import { RedisManager } from "./redisManagerWhiteboard";
-import { KafkaHandler } from "./kafkaHandler";
+import { KafkaHandler, RedisManager, User } from "./index";
 
 
 
@@ -108,7 +106,6 @@ export class MeetingManager {
         }
 
         Object.entries(meetingInfo.members).forEach(([peerId, peer]: [string, User]) => {
-            console.log("userid, Id", userId, peerId)
             if (userId !== peerId) {
                 peer.sendMessage(jsonString)
             }

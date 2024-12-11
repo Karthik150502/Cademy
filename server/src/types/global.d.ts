@@ -2,6 +2,8 @@ import { Request } from "express";
 import { JwtPayload } from "jsonwebtoken";
 declare module "express" {
     interface Request {
+        room_name?: string,
+        identity?: string,
         user?: {
             name: string,
             email: string,

@@ -3,7 +3,6 @@ import React from 'react'
 import { motion } from "framer-motion";
 export default function LandingText({ children, size }: { children: string, size: number }) {
 
-    console.log("hello")
 
     return (
         <div className='text-center w-full mx-auto

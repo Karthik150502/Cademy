@@ -5,9 +5,6 @@ const app = Router();
 
 app.get("/", authMiddleware, async (req: Request, res: Response) => {
 
-
-
-
     const rooms = await prisma.roomMember.findMany({
         where: {
             userId: req.user?.id!
@@ -75,21 +72,6 @@ app.get("/:meetingId", authMiddleware, async (req: Request, res: Response) => {
                 }
             }
         }
-        // select: {
-        //     organiser: true,
-        //     createdAt: true,
-        //     RoomMember: {
-        //         select: {
-        //             user: {
-        //                 select: {
-        //                     email: true,
-        //                     name: true,
-        //                     image: true
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
     });
 
     if (!room) {
@@ -110,7 +92,6 @@ app.get("/:meetingId", authMiddleware, async (req: Request, res: Response) => {
 app.post("/", authMiddleware, async (req: Request, res: Response) => {
     const { title } = req.body;
     const room = await prisma.room.create({
-
         data: {
             organiser: req.user?.id!,
             title,

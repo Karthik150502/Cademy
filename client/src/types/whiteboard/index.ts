@@ -23,5 +23,11 @@ export enum IncomingEvents {
     USER_JOINED = "user-joined",
     STROKE_INPUT = "stroke-input",
     USER_LEFT = "user-left",
-    STROKE_REPLAY = "stroke-replay"
 }
+
+
+export enum ReplayIncomingEvents {
+    STARTING_REPLAY = "starting-replay",
+    STROKE_REPLAY = "stroke-replay",
+    REPLAY_INITIALSTATE = "replay-initialstate",
+} 
