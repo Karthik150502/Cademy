@@ -59,7 +59,7 @@ export class MeetingManager {
         if (meeting?.isRecording) {
             const payload = JSON.stringify(stroke)
             await RedisManager.pushStrokeToRedis(meetingId, payload);
-            await KafkaHandler.produceToTopic(`whiteboard-${recordingId}`, payload);
+            // await KafkaHandler.produceToTopic(`whiteboard-${recordingId}`, payload);
         }
         meeting!.whiteBoardState.push(stroke);
     }

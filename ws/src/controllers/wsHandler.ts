@@ -116,15 +116,17 @@ export class WsHandler {
                         return;
                     }
 
-                    const { createdAt, initialState } = recording;
+                    const { createdAt, initialState, subsequentStates } = recording;
                     this.sendMessage(JSON.stringify({
                         type: "replay-initialstate",
                         payload: {
-                            initialState
+                            initialState,
+                            subsequentStates,
+                            createdAt
                         }
                     }))
-                    this.player = new Player(this, recordingId, createdAt);
-                    await this.player.play();
+                    // this.player = new Player(this, recordingId, createdAt);
+                    // await this.player.play();
                     break;
                 }
                 case IncomingEvents.PLAY: {

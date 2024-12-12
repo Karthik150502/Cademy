@@ -2,7 +2,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 import { ChevronDown, Loader } from 'lucide-react'
-// import { Pause, Play } from 'lucide-react'
 import { CanvasStroke, ReplayIncomingEvents } from '@/types/whiteboard';
 import { useWSWhiteboardReplay } from '@/providers/wsWhiteBoardReplay'
 import { MeetingRecording, Room } from '@prisma/client'
@@ -20,14 +19,15 @@ export default function WhiteboardReplay({ recordingId, recordingData }: { recor
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [openTool, setOpenTool] = useState<boolean>(true);
-    const [paths, setPaths] = useState<CanvasStroke[]>([]);
+    const pathsRef = useRef<CanvasStroke[]>([]);
+    const previousTime = useRef<number>(0);
+    const strokeTimer = useRef<NodeJS.Timeout>();
     const [paused, setPaused] = useState<boolean>(false);
-    // const [offSet, setOffset] = useState<string>('0');
 
     const ws = useWSWhiteboardReplay();
 
     useEffect(() => {
-        if (ws && ws.socket) {
+        if (ws?.socket) {
             ws.socket.send(JSON.stringify({
                 type: 'start-replay',
                 data: {
@@ -35,7 +35,7 @@ export default function WhiteboardReplay({ recordingId, recordingData }: { recor
                 }
             }))
         }
-    }, [ws, ws?.socket, recordingId])
+    }, [ws?.socket, recordingId])
 
 
     const draw = useCallback((ctx: CanvasRenderingContext2D | null | undefined, path: CanvasStroke, i: number) => {
@@ -55,7 +55,7 @@ export default function WhiteboardReplay({ recordingId, recordingData }: { recor
                 ctx.beginPath();
                 ctx.moveTo(path.x, path.y);
             } else {
-                const prevPath = paths[i - 1];
+                const prevPath = pathsRef.current[i - 1];
                 if (prevPath) {
                     ctx.beginPath();
                     ctx.moveTo(prevPath.x, prevPath.y);
@@ -64,7 +64,7 @@ export default function WhiteboardReplay({ recordingId, recordingData }: { recor
                 }
             }
         }
-    }, [paths])
+    }, [])
 
 
     // const seekToPoint = useCallback((seekIndex: number) => {
@@ -89,14 +89,24 @@ export default function WhiteboardReplay({ recordingId, recordingData }: { recor
     const restoreCanvasStroke = useCallback((path: CanvasStroke) => {
         const canvas = canvasRef.current;
         const ctx = canvas?.getContext('2d');
-        draw(ctx, path, paths.length);
-        setPaths((prev) => [...prev, path]);
-    }, [paths, draw]);
+        draw(ctx, path, pathsRef.current.length);
+        pathsRef.current = [...pathsRef.current, path]
+    }, [draw]);
+
+    const startReplaying = useCallback((strokes: CanvasStroke[]) => {
+        strokes.forEach((stroke) => {
+            strokeTimer.current = setTimeout(() => {
+                previousTime.current = stroke.timeStamp;
+                restoreCanvasStroke(stroke);
+                clearTimeout(strokeTimer.current);
+            }, stroke.timeStamp - previousTime.current);
+        })
+    }, [restoreCanvasStroke]);
 
     const restoreCanvas = useCallback((strokePaths: CanvasStroke[]) => {
         const canvas = canvasRef.current;
         const ctx = canvas?.getContext('2d');
-        setPaths(strokePaths);
+        pathsRef.current = [...strokePaths]
         strokePaths.forEach((path: CanvasStroke, i: number) => {
             if (ctx) {
                 ctx.lineJoin = 'round';
@@ -162,11 +172,15 @@ export default function WhiteboardReplay({ recordingId, recordingData }: { recor
                     }
                     case ReplayIncomingEvents.REPLAY_INITIALSTATE: {
                         const initialState = JSON.parse(parsed.payload.initialState) as CanvasStroke[];
+                        const subStates = JSON.parse(parsed.payload.subsequentStates) as CanvasStroke[];
+                        const startedAt = new Date(parsed.payload.createdAt).getTime();;
                         restoreCanvas(initialState);
+                        previousTime.current = startedAt;
+                        setIsLoading(false);
+                        startReplaying(subStates);
                         break;
                     }
                     case ReplayIncomingEvents.STARTING_REPLAY: {
-                        setIsLoading(false);
                         break;
                     }
 
@@ -184,7 +198,10 @@ export default function WhiteboardReplay({ recordingId, recordingData }: { recor
 
             }
         }
-    }, [ws, restoreCanvasStroke, restoreCanvas, paused])
+    }, [ws, restoreCanvasStroke, restoreCanvas, paused, startReplaying])
+
+
+
 
     useEffect(() => {
         const canvas = canvasRef.current
@@ -207,14 +224,14 @@ export default function WhiteboardReplay({ recordingId, recordingData }: { recor
                     canvas.width = window.innerWidth
                     canvas.height = window.innerHeight
                     ctx.putImageData(imageData, 0, 0);
-                    restoreCanvas(paths);
+                    restoreCanvas(pathsRef.current);
                 }
             }
         }
 
         window.addEventListener('resize', handleResize)
         return () => window.removeEventListener('resize', handleResize)
-    }, [paths, restoreCanvas])
+    }, [restoreCanvas])
 
 
     return (
