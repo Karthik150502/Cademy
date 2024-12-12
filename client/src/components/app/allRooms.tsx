@@ -32,7 +32,7 @@ export default function AllRooms() {
             {isPending ? <div className='w-full absolute top-10 flex flex-col items-center justify-center gap-y-1 '>
                 <Loader className="animate-spin" />
                 <p>Fetching user rooms, kinldy wait....</p>
-            </div> : <div className='w-full h-full grid lg:grid-cols-2 sm:grid-cols-1 gap-3 place-content-center place-items-start relative overflow-auto no-scrollbar px-4 pb-4 pt-20 lg:pt-4'>
+            </div> : <div className='w-full h-full grid lg:grid-cols-2 sm:grid-cols-1 gap-3 place-content-start place-items-start  relative overflow-auto no-scrollbar px-4 py-4'>
                 {
                     (data && data.rooms) && data.rooms.map(({ room }: { room: Meeting }) => {
                         return <RoomCard key={room.id} room={room} />
@@ -45,11 +45,11 @@ export default function AllRooms() {
 }
 
 export function RoomCard({ room }: {
-    room: Meeting
+    room: Meeting,
 }) {
 
     const router = useRouter();
-
+    const { data: session } = useSession()
     return (
         <div className='h-auto w-full rounded-md shadow-xl flex flex-col items-center justify-between p-4'>
             <div className='w-full flex flex-col items-start justify-center P-4'>
@@ -74,7 +74,8 @@ export function RoomCard({ room }: {
             <Button
                 size={"sm"}
                 onClick={() => {
-                    router.push(`/meeting?meetingId=${room.id}`)
+                    // router.push(`/meeting?meetingId=${room.id}`)
+                    router.push(`/check-hair?roomId=${room.id}&type=watch`);
                 }}
             >
                 Join

@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import { radixThemePreset } from "radix-themes-tw";
 
 const config: Config = {
 	darkMode: ["class"],
@@ -59,5 +60,6 @@ const config: Config = {
 		}
 	},
 	plugins: [require("tailwindcss-animate")],
+	// presets: [radixThemePreset]
 };
 export default config;

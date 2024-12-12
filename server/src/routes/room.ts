@@ -33,8 +33,6 @@ app.get("/", authMiddleware, async (req: Request, res: Response) => {
             }
         }
     });
-
-
     res.json({
         status: 200,
         rooms: rooms

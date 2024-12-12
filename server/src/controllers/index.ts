@@ -15,6 +15,7 @@ import {
 } from "livekit-server-sdk";
 import { TrackSource } from "livekit-server-sdk/dist/proto/livekit_models";
 import { livekitApiKey, liveKitWsUrl, livekitApiSecret } from "../lib/config";
+
 export type RoomMetadata = {
     creator_identity: string;
     enable_chat: boolean;
@@ -56,7 +57,7 @@ export type CreateIngressResponse = {
 };
 
 export type CreateStreamParams = {
-    room_name: string,
+    roomId: string,
     metadata: RoomMetadata;
 };
 
@@ -66,7 +67,7 @@ export type CreateStreamResponse = {
 };
 
 export type JoinStreamParams = {
-    room_name: string;
+    roomId: string;
     identity: string;
 };
 
@@ -196,7 +197,7 @@ export class Controller {
 
     async createStream({
         metadata,
-        room_name: roomName,
+        roomId: roomName,
     }: CreateStreamParams): Promise<CreateStreamResponse> {
         const at = new AccessToken(
             livekitApiKey,
@@ -255,12 +256,12 @@ export class Controller {
 
     async joinStream({
         identity,
-        room_name,
+        roomId,
     }: JoinStreamParams): Promise<JoinStreamResponse> {
         // Check for existing participant with same identity
         let exists = false;
         try {
-            await this.roomService.getParticipant(room_name, identity);
+            await this.roomService.getParticipant(roomId, identity);
             exists = true;
         } catch { }
 
@@ -277,14 +278,14 @@ export class Controller {
         );
 
         at.addGrant({
-            room: room_name,
+            room: roomId,
             roomJoin: true,
             canPublish: false,
             canSubscribe: true,
             canPublishData: true,
         });
 
-        const authToken = this.createAuthToken(room_name, identity);
+        const authToken = this.createAuthToken(roomId, identity);
 
         return {
             auth_token: authToken,

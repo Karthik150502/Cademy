@@ -9,5 +9,5 @@ export const AUTH_SECRET = process.env.AUTH_SECRET!;
 
 export const livekitApiKey = process.env.LIVEKIT_API_KEY as string;
 export const livekitApiSecret = process.env.LIVEKIT_API_SECRET as string;
-export const liveKitWsUrl = process.env.LIVEKIT_URL as string;
+export const liveKitWsUrl = process.env.LIVEKIT_WS_URL as string;
 export const liveKitApiUrl = process.env.LIVEKIT_API_URL as string;

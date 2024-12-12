@@ -10,7 +10,6 @@ type Props = {
 }
 
 export default function MeetingPage({ params }: Props) {
-    console.log(params.meetingId)
     return (
         <div className='min-h-screen overflow-hidden relative flex items-center flex-col justify-center'>
             <Whiteboard meetingId={params.meetingId} />

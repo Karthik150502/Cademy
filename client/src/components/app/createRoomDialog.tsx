@@ -21,7 +21,7 @@ import { CreateRoomSchema, CreateRoomSchemaType } from '@/schema/createRoomSchem
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { createRoom } from '@/actions/createMeeting';
+// import { createRoom } from '@/actions/createMeeting';
 import { Button } from '../ui/button';
 import { Loader2 } from 'lucide-react';
 import { Input } from '../ui/input';
@@ -39,13 +39,16 @@ export default function CreateRoomDialog() {
 
     const { mutate, isPending } = useMutation({
         mutationFn: async (form: CreateRoomSchemaType) => {
-            await create_Stream_and_Room({
+            return await create_Stream_and_Room({
                 title: form.title,
                 name: form.name
             })
         },
-        onSuccess: () => {
+        onSuccess: (data) => {
+            const { auth_token, token, roomId } = data;
             toast.success("Created a Meeting", { id: "create-meeting" });
+            // router.push(`/host?&at=${auth_token}&rt=${token}`);
+            router.push(`/check-hair?&at=${auth_token}&rt=${token}&roomId=${roomId}&type=hosting`);
             setOpen(false);
         },
         onError: (e) => {

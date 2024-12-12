@@ -1,34 +1,24 @@
-"use client";
+import { redirect } from "next/navigation";
+import HostPageImpl from "./page.client";
+import { Env } from "@/lib/config";
 
-import { StreamPlayer } from "@/components/stream-player";
-import { TokenContext } from "@/components/token-context";
-import { LiveKitRoom } from "@livekit/components-react";
-import { Box, Flex } from "@radix-ui/themes";
+interface PageProps {
+  searchParams: {
+    at: string | undefined;
+    rt: string | undefined;
+    roomId: string | undefined
 
-export default function HostPage({
-  authToken,
-  roomToken,
-  serverUrl,
-}: {
-  authToken: string;
-  roomToken: string;
-  serverUrl: string;
-}) {
-  return (
-    <TokenContext.Provider value={authToken}>
-      <LiveKitRoom serverUrl={serverUrl} token={roomToken}>
-        <Flex className="w-full h-screen">
-          <Flex direction="column" className="flex-1">
-            <Box className="flex-1 bg-gray-1">
-              <StreamPlayer isHost />
-            </Box>
-            {/* <ReactionBar /> */}
-          </Flex>
-          {/* <Box className="bg-accent-2 min-w-[280px] border-l border-accent-5 hidden sm:block">
-            <Chat />
-          </Box> */}
-        </Flex>
-      </LiveKitRoom>
-    </TokenContext.Provider>
-  );
+  };
+}
+
+export default async function HostPage({
+  searchParams: { at, rt, roomId },
+}: PageProps) {
+  if (!at || !rt || !roomId) {
+    redirect("/");
+  }
+
+  const serverUrl = Env.liveKitWsUrl.replace("wss://", "https://")
+    .replace("ws://", "http://");
+  return <HostPageImpl roomId={roomId} authToken={at} roomToken={rt} serverUrl={serverUrl} />;
 }

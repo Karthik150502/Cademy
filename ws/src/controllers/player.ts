@@ -49,7 +49,7 @@ export class Player {
                         type: "stroke-replay",
                         payload: messageValue,
                         offset: message.offset
-                    }))
+                    }));
                     this.prevStrokeTime = payload.timeStamp;
                     // this.currentOffset = message.offset;
                     if (this.timer) {

@@ -54,8 +54,10 @@ export default function JoinRoomDialog() {
 
     const onSubmit = useCallback((values: JoinRoomSchemaType) => {
         toast.loading("Scheduling a meeting...", { id: "create-meeting" });
-        mutate(values);
-    }, [mutate])
+        // mutate(values);
+        router.push(`/check-hair?roomId=${values.roomId}&type=watch`);
+        toast.success("Joined the meeting", { id: "create-meeting" });
+    }, [router])
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
