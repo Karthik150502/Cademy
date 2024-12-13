@@ -29,8 +29,7 @@ export default function ReplayRecordingPage({ params: { recordingId } }: Props) 
 
     return (
         <div className='min-h-screen overflow-hidden relative flex flex-col items-center justify-center'>
-
-            <WhiteboardReplay recordingId={recordingId} recordingData={data} />
+            <WhiteboardReplay recordingData={data} />
         </div>
     )
 }

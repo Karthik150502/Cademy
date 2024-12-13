@@ -30,6 +30,7 @@ export default function JoinRoomDialog() {
 
     const [open, setOpen] = useState<boolean>(false);
     const router = useRouter();
+    const [isPending, setIsPending] = useState<boolean>(false);
 
     const form = useForm<JoinRoomSchemaType>({
         resolver: zodResolver(JoinRoomSchema),
@@ -37,26 +38,12 @@ export default function JoinRoomDialog() {
     })
 
 
-    const { mutate, isPending } = useMutation({
-        mutationFn: async (form: JoinRoomSchemaType) => {
-            return await joinRoom({
-                roomId: form.roomId,
-            })
-        },
-        onSuccess: (data) => {
-            toast.success("Joined the meeting", { id: "create-meeting" });
-            router.push(`/meeting/?meetingId=${data.roomId}`)
-        },
-        onError: (e) => {
-            toast.error(`Failed to join the Meeting: ${e.message}`, { id: "create-meeting" })
-        }
-    });
-
     const onSubmit = useCallback((values: JoinRoomSchemaType) => {
-        toast.loading("Scheduling a meeting...", { id: "create-meeting" });
-        // mutate(values);
+        setIsPending(true);
+        toast.loading("Joining the meeting...", { id: "join-meeting" });
         router.push(`/check-hair?roomId=${values.roomId}&type=watch`);
-        toast.success("Joined the meeting", { id: "create-meeting" });
+        toast.success("Joined the meeting", { id: "join-meeting" });
+        setIsPending(false);
     }, [router])
 
     return (

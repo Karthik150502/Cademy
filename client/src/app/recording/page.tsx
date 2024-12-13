@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button'
 import moment from 'moment'
 import Image from 'next/image'
 import Link from 'next/link'
-// import { useWS } from '@/providpers/wsProvider'
 type SingleRecordingType = MeetingRecording & {
     room: Room & {
         user: User
@@ -20,7 +19,7 @@ type SingleRecordingType = MeetingRecording & {
 export default function RecordingDetailPage() {
 
 
-    // const ws = useWS();
+
 
 
     const recordingId = useSearchParams().get("recordingId");

@@ -2,12 +2,13 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 import { ChevronDown, Loader } from 'lucide-react'
-import { CanvasStroke, ReplayIncomingEvents } from '@/types/whiteboard';
-import { useWSWhiteboardReplay } from '@/providers/wsWhiteBoardReplay'
+import { CanvasStroke } from '@/types/whiteboard';
 import { MeetingRecording, Room } from '@prisma/client'
 import { User } from 'next-auth'
 import moment from 'moment'
-// import { Button } from '../ui/button';
+import { Button } from '@/components/ui/button';
+import { Pause, Play } from "lucide-react";
+
 
 type SingleRecordingType = MeetingRecording & {
     room: Room & {
@@ -15,27 +16,17 @@ type SingleRecordingType = MeetingRecording & {
     }
 }
 
-export default function WhiteboardReplay({ recordingId, recordingData }: { recordingId: string, recordingData: SingleRecordingType | undefined }) {
+export default function WhiteboardReplay({ recordingData }: { recordingData: SingleRecordingType | undefined }) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [openTool, setOpenTool] = useState<boolean>(true);
     const pathsRef = useRef<CanvasStroke[]>([]);
+    const timerRefs = useRef<NodeJS.Timeout[]>([]);
     const previousTime = useRef<number>(0);
     const strokeTimer = useRef<NodeJS.Timeout>();
     const [paused, setPaused] = useState<boolean>(false);
 
-    const ws = useWSWhiteboardReplay();
 
-    useEffect(() => {
-        if (ws?.socket) {
-            ws.socket.send(JSON.stringify({
-                type: 'start-replay',
-                data: {
-                    recordingId
-                }
-            }))
-        }
-    }, [ws?.socket, recordingId])
 
 
     const draw = useCallback((ctx: CanvasRenderingContext2D | null | undefined, path: CanvasStroke, i: number) => {
@@ -67,24 +58,24 @@ export default function WhiteboardReplay({ recordingId, recordingData }: { recor
     }, [])
 
 
-    // const seekToPoint = useCallback((seekIndex: number) => {
-    //     const canvas = canvasRef.current;
-    //     if (canvas) {
-    //         const ctx = canvas.getContext('2d');
-    //         if (ctx) {
-    //             // Clear the canvas
-    //             ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const seekToPoint = useCallback((seekIndex: number) => {
+        const canvas = canvasRef.current;
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+                // Clear the canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    //             // Redraw up to the specified index
-    //             for (let i = 0; i <= seekIndex; i++) {
-    //                 const path = paths[i];
-    //                 if (path) {
-    //                     draw(ctx, path, i);
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }, [paths, draw]);
+                // Redraw up to the specified index
+                for (let i = 0; i <= seekIndex; i++) {
+                    const path = pathsRef.current[i];
+                    if (path) {
+                        draw(ctx, path, i);
+                    }
+                }
+            }
+        }
+    }, [draw]);
 
     const restoreCanvasStroke = useCallback((path: CanvasStroke) => {
         const canvas = canvasRef.current;
@@ -136,73 +127,6 @@ export default function WhiteboardReplay({ recordingId, recordingData }: { recor
         })
     }, []);
 
-
-
-    // const pauseOrPlay = useCallback(() => {
-    //     if (paused) {
-    //         ws?.socket?.send(JSON.stringify({
-    //             type: "play",
-    //             data: {
-    //                 offSet
-    //             }
-    //         }))
-    //         setPaused(false);
-    //     } else {
-    //         ws?.socket?.send(JSON.stringify({
-    //             type: "pause",
-    //             data: {
-    //                 offSet
-    //             }
-    //         }))
-    //         setPaused(true);
-    //     }
-    // }, [offSet, paused, ws?.socket])
-
-    useEffect(() => {
-        if (ws?.socket) {
-            ws.socket.onmessage = ({ data }) => {
-                const parsed = JSON.parse(data.toString());
-                switch (parsed.type) {
-                    case ReplayIncomingEvents.STROKE_REPLAY: {
-                        if (!paused) {
-                            restoreCanvasStroke(JSON.parse(parsed.payload) as CanvasStroke);
-                            // setOffset(parsed.offSet);
-                        }
-                        break;
-                    }
-                    case ReplayIncomingEvents.REPLAY_INITIALSTATE: {
-                        const initialState = JSON.parse(parsed.payload.initialState) as CanvasStroke[];
-                        const subStates = JSON.parse(parsed.payload.subsequentStates) as CanvasStroke[];
-                        const startedAt = new Date(parsed.payload.createdAt).getTime();;
-                        restoreCanvas(initialState);
-                        previousTime.current = startedAt;
-                        setIsLoading(false);
-                        startReplaying(subStates);
-                        break;
-                    }
-                    case ReplayIncomingEvents.STARTING_REPLAY: {
-                        break;
-                    }
-
-                    case "pause": {
-                        setPaused(true);
-                        break;
-                    }
-                    case "play": {
-                        setPaused(false);
-                        break;
-                    }
-                    default:
-                        break;
-                }
-
-            }
-        }
-    }, [ws, restoreCanvasStroke, restoreCanvas, paused, startReplaying])
-
-
-
-
     useEffect(() => {
         const canvas = canvasRef.current
         if (canvas) {
@@ -234,6 +158,15 @@ export default function WhiteboardReplay({ recordingId, recordingData }: { recor
     }, [restoreCanvas])
 
 
+    useEffect(() => {
+        if (recordingData) {
+            restoreCanvas(JSON.parse(recordingData.initialState) as CanvasStroke[]);
+            setIsLoading(false);
+            previousTime.current = new Date(recordingData.createdAt).getTime();
+            startReplaying(JSON.parse(recordingData.subsequentStates) as CanvasStroke[])
+        }
+    }, [recordingData, restoreCanvas, startReplaying])
+
     return (
         <div className="flex flex-col h-full w-full relative overflow-auto border border-black/35">
             <div className={cn("flex justify-start gap-x-2 h-[50px] absolute transition-all duration-500 w-full items-center p-4 border-b border-b-black/15 bg-white",
@@ -245,9 +178,9 @@ export default function WhiteboardReplay({ recordingId, recordingData }: { recor
                 </div>
 
 
-                {/* <Button className='flex items-center justify-center gap-x-1' variant={"outline"} disabled={isLoading}
+                <Button className='flex items-center justify-center gap-x-1' variant={"outline"} disabled={isLoading}
                     onClick={() => {
-                        pauseOrPlay();
+                        setPaused(!paused);
                     }}
                 >
                     {
@@ -260,7 +193,7 @@ export default function WhiteboardReplay({ recordingId, recordingData }: { recor
                         </>
                     }
 
-                </Button> */}
+                </Button>
                 <div className={cn("h-10 w-10 cursor-pointer rounded-full bg-white border border-black/15 opacity-70 transition-all hover:opacity-100 duration-300 flex items-center justify-center absolute -bottom-12 left-[50%]", openTool ? "rotate-0" : "rotate-180")}
                     onClick={() => { setOpenTool(!openTool) }}
                 >

@@ -1,4 +1,3 @@
-import { WebSocket } from "ws";
 import { CanvasStroke, MeetingInfoType, MeetingsType } from "../types";
 import { KafkaHandler, RedisManager, User } from "./index";
 
@@ -55,7 +54,7 @@ export class MeetingManager {
     }
     static async updateWhiteboard(stroke: CanvasStroke, meetingId: string) {
         const meeting = this.meetings.get(meetingId);
-        const recordingId = meeting?.recordingId!;
+        // const recordingId = meeting?.recordingId!;
         if (meeting?.isRecording) {
             const payload = JSON.stringify(stroke)
             await RedisManager.pushStrokeToRedis(meetingId, payload);
@@ -73,10 +72,11 @@ export class MeetingManager {
         meeting.redisWhiteboardTimer = RedisManager.startStrokeFetchFromRedis(meetingId, recordingId);
         return recordingId;
     }
+
     static async startRecording(meetingId: string, initialWhiteboardState: CanvasStroke[]) {
-        KafkaHandler.connectProducer();
-        let recordingId = await this.startWhiteBoardRecording(meetingId, initialWhiteboardState);
-        await KafkaHandler.createTopic(`whiteboard-${recordingId}`)
+        // KafkaHandler.connectProducer();
+        await this.startWhiteBoardRecording(meetingId, initialWhiteboardState);
+        // await KafkaHandler.createTopic(`whiteboard-${recordingId}`)
     }
 
     static async stopRecording(meetingId: string) {

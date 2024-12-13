@@ -2,13 +2,9 @@
 
 import { WebSocket, WebSocketServer } from "ws";
 import { User } from "./controllers/user";
-
-
-
 const wss = new WebSocketServer({
     port: 8001
 })
-
 
 wss.on("connection", (ws: WebSocket, req: Request) => {
     const urlParams = new URLSearchParams(req.url.split('?')[1]);

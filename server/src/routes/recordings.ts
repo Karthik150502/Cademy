@@ -53,6 +53,8 @@ app.get("/:recordingId", authMiddleware, async (req: Request, res: Response) => 
             id: recordingId
         },
         select: {
+            initialState: true,
+            subsequentStates: true,
             createdAt: true,
             room: {
                 select: {

@@ -1,7 +1,7 @@
 'use client'
 import React from 'react'
 import { Room, User } from '@prisma/client'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { useSession } from 'next-auth/react'
 import { getMeetings } from '@/actions/getAllMeetings'
 import { Loader, UserCircleIcon } from 'lucide-react'
@@ -10,6 +10,8 @@ import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import Image from 'next/image'
 import moment from 'moment';
+import { createStream } from '@/actions/livekit/create_stream_only'
+import { toast } from 'sonner'
 
 type Meeting = Room & {
     user: Omit<User, 'password'>,
@@ -47,9 +49,29 @@ export default function AllRooms() {
 export function RoomCard({ room }: {
     room: Meeting,
 }) {
-
     const router = useRouter();
-    const { data: session } = useSession()
+    const { data: session } = useSession();
+    const { mutate } = useMutation({
+        mutationFn: async ({
+            roomId, name
+        }: {
+            roomId: string, name: string
+        }) => {
+            return await createStream({
+                roomId: roomId,
+                name: name
+            })
+        },
+        onSuccess: (data) => {
+            const { auth_token, token, roomId } = data;
+            toast.success("Joined a Meeting", { id: "create-meeting" });
+            router.push(`/check-hair?&at=${auth_token}&rt=${token}&roomId=${roomId}&type=hosting`);
+        },
+        onError: (e) => {
+            toast.error(`Failed to join the Meeting: ${e.message}`, { id: "create-meeting" });
+        }
+    });
+
     return (
         <div className='h-auto w-full rounded-md shadow-xl flex flex-col items-center justify-between p-4'>
             <div className='w-full flex flex-col items-start justify-center P-4'>
@@ -74,8 +96,14 @@ export function RoomCard({ room }: {
             <Button
                 size={"sm"}
                 onClick={() => {
-                    // router.push(`/meeting?meetingId=${room.id}`)
-                    router.push(`/check-hair?roomId=${room.id}&type=watch`);
+                    if (session?.user?.id === room.user.id) {
+                        mutate({
+                            roomId: room.id,
+                            name: room.user.name!
+                        });
+                    } else {
+                        router.push(`/check-hair?roomId=${room.id}&type=watch`);
+                    }
                 }}
             >
                 Join

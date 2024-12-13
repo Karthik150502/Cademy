@@ -3,7 +3,6 @@ import WebSocket from "ws";
 import { IncomingData, IncomingEvents, IncomingMessageType, OutgoingEvents } from "../types";
 export class WsHandler {
 
-    private player: Player | null = null;
 
     constructor(private user: User, private ws: WebSocket) {
         this.user = user;
@@ -41,8 +40,6 @@ export class WsHandler {
 
     public async closeWs() {
         this.ws.close();
-        await this.player?.disconnect();
-        this.player = null;
     }
 
     public initialize() {
@@ -112,7 +109,6 @@ export class WsHandler {
                     console.log(`Replaying the strokes for whiteboard-${recordingId}`);
                     const recording = await this.user.getRecordingStartingTime(recordingId);
                     if (!recording) {
-                        // TODO: Handle recording not found.
                         return;
                     }
 
@@ -125,20 +121,6 @@ export class WsHandler {
                             createdAt
                         }
                     }))
-                    // this.player = new Player(this, recordingId, createdAt);
-                    // await this.player.play();
-                    break;
-                }
-                case IncomingEvents.PLAY: {
-                    this.sendMessage(JSON.stringify({
-                        type: "play",
-                    }))
-                    await this.player?.play();
-                    break;
-                }
-                case IncomingEvents.PAUSE: {
-                    let offSet = parsed.data.offSet;
-                    await this.player?.pause(offSet);
                     break;
                 }
 

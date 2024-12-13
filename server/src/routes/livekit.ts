@@ -74,6 +74,32 @@ app.post("/create_stream", authMiddleware, async (req: Request, res: Response) =
         return
     }
 })
+app.post("/create_stream_only", authMiddleware, async (req: Request, res: Response) => {
+    const controller = new Controller();
+    try {
+        const reqBody = req.body;
+
+        const response = await controller.createStream({
+            metadata: reqBody.metadata,
+            roomId: reqBody.roomId,
+        });
+
+        res.json({
+            status: 200,
+            roomId: reqBody.roomId,
+            response,
+        });
+        return
+    } catch (err) {
+        if (err instanceof Error) {
+            res.json({ error: err.message, status: 500 });
+            return
+        }
+
+        res.json({ status: 500 });
+        return
+    }
+})
 
 app.post("/invite_to_stage", async (req: Request, res: Response) => {
     const controller = new Controller();

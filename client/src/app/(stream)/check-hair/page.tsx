@@ -1,10 +1,8 @@
 'use client'
-import { getSingleMeetingDetail } from '@/actions/getSingleMeeting';
 import { useWS } from '@/providers/wsProvider';
 import { WhiteBoarsInitialState } from '@/store/recoil';
 import { IncomingEvents, OutgoingEvents } from '@/types/whiteboard';
-import { Button } from '@radix-ui/themes';
-import { useQuery } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -27,17 +25,21 @@ export default function CheckHair({
         router.push("/");
     }
     const isHosting = type === "hosting" ? true : false;
-    if (!at || !rt || !roomId) {
-        router.push("/");
+    if (isHosting) {
+        if (!at || !rt || !roomId) {
+            router.push("/");
+        }
+    } else {
+        if (!roomId) {
+            router.push("/");
+        }
     }
-
-
 
 
     const { data: session } = useSession();
     const setWhiteBoard = useSetRecoilState(WhiteBoarsInitialState);
     const ws = useWS();
-    
+
 
     const handleMeetingJoin = useCallback(() => {
         if (ws && ws.socket) {
