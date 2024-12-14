@@ -1,6 +1,7 @@
 import { JwtPayload } from "jsonwebtoken";
 import { JWT } from "next-auth/jwt";
 import { JWTPayload } from "jose";
+
 declare module "next-auth/jwt" {
     interface JWT {
         user?: {
@@ -11,7 +12,6 @@ declare module "next-auth/jwt" {
         }; // Custom property for user ID
     }
 }
-
 declare module 'jose' {
     interface JWTPayload {
         id: string,
@@ -20,9 +20,6 @@ declare module 'jose' {
         image: string,
     }
 }
-
-
-
 declare module 'jsonwebtoken' {
     interface JwtPayload {
         id: string,
