@@ -1,12 +1,11 @@
-# Use an official Node.js image as the base for the build stage
-FROM node:20-alpine AS builder
+FROM node:20.12.0-alpine3.19 AS builder
 
-# Set the working directory
-WORKDIR /app
+WORKDIR /usr/src/app
 
-# Copy only the package.json and package-lock.json (or yarn.lock) to leverage Docker cache
+RUN cd ./client
+
+
 COPY package.json package-lock.json* ./
-
 
 # Build args
 ARG AUTH_SECRET
@@ -45,16 +44,16 @@ RUN npm run build
 RUN npm prune --production
 
 # Use a smaller base image for the runtime environment
-FROM node:20-alpine AS runner
+FROM node:20.12.0-alpine3.19 AS runner
 
 # Set working directory in the final container
-WORKDIR /app
+WORKDIR /usr/src/app
 
 # Copy built application and necessary files from the builder stage
-COPY --from=builder /app/package.json /app/package-lock.json* /app/yarn.lock* ./
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /usr/src/app/package.json /usr/src/app/package-lock.json*  ./
+COPY --from=builder /usr/src/app/.next ./.next
+COPY --from=builder /usr/src/app/public ./public
+COPY --from=builder /usr/src/app/node_modules ./node_modules
 
 # Expose the port Next.js runs on
 EXPOSE 3000

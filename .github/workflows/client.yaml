@@ -22,7 +22,7 @@ jobs:
         with:
           context: .
           build-args: |   
-              JWT_SECRET=${{ secrets.JWT_SECRET }}
+              AUTH_SECRET=${{ secrets.AUTH_SECRET }}
           file: ./client/Dockerfile
           push: true
           tags: karthik150502/cademy_client:latest
