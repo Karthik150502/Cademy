@@ -43,7 +43,7 @@ WORKDIR /usr/src/app
 
 # Copy built application and necessary files from the builder stage
 COPY --from=builder /usr/src/app/package.json /usr/src/app/package-lock.json*  ./
-COPY --from=builder /usr/src/app/.dist ./.dist
+COPY --from=builder /usr/src/app/dist ./dist
 COPY --from=builder /usr/src/app/node_modules ./node_modules
 
 # Expose the port Next.js runs on
