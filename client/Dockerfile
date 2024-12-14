@@ -2,8 +2,7 @@ FROM node:20.12.0-alpine3.19 AS builder
 
 WORKDIR /usr/src/app
 
-RUN cd ./client
-
+RUN cd client
 
 COPY package.json package-lock.json* ./
 
@@ -33,6 +32,8 @@ ENV NEXT_PUBLIC_LIVEKIT_WS_URL=${NEXT_PUBLIC_LIVEKIT_WS_URL}
 
 # Install dependencies
 RUN npm install --no-audit
+
+RUN db:generate
 
 # Copy the rest of the application code
 COPY . .
