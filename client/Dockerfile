@@ -31,7 +31,7 @@ ENV NEXT_PUBLIC_LIVEKIT_WS_URL=${NEXT_PUBLIC_LIVEKIT_WS_URL}
 # Install dependencies
 RUN npm install --no-audit
 
-RUN db:generate
+RUN npm run db:generate
 
 # Copy the rest of the application code
 COPY . .
