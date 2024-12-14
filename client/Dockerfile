@@ -2,8 +2,6 @@ FROM node:20.12.0-alpine3.19 AS builder
 
 WORKDIR /usr/src/app
 
-RUN cd client
-
 COPY package.json package-lock.json* ./
 
 # Build args
