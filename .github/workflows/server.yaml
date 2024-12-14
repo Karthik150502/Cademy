@@ -1,4 +1,4 @@
-name: Build and deploy to dockerhub
+name: Build and deploy Node backend to dockerhub
 on: 
   push:
     branches:

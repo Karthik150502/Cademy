@@ -1,5 +1,7 @@
 FROM node:20.12.0-alpine3.19 AS builder
 
+RUN apk add --no-cache curl bash openssl
+
 WORKDIR /usr/src/app
 
 COPY package.json package-lock.json* ./
@@ -9,7 +11,6 @@ ARG DATABASE_URL
 
 # Set environment variables from build args
 ENV DATABASE_URL=${DATABASE_URL}
-
 
 # Install dependencies
 RUN npm install --no-audit
@@ -21,9 +22,7 @@ RUN ls
 
 RUN npm run db:generate
 
-# Build the Next.js app
 RUN npm run build
-
 
 # Remove development dependencies to keep the final image clean
 RUN npm prune --production

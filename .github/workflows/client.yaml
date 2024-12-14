@@ -1,4 +1,4 @@
-name: Build and deploy to dockerhub
+name: Build and deploy Next Frontend to dockerhub
 on: 
   push:
     branches:
