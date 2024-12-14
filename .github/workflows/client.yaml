@@ -25,6 +25,15 @@ jobs:
               AUTH_SECRET=${{ secrets.AUTH_SECRET }}
               NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}
               AUTH_TRUST_HOST=${{ secrets.AUTH_TRUST_HOST }}
+              GOOGLE_CLIENT_ID=${{ GOOGLE_CLIENT_ID }}
+              GOOGLE_CLIENT_SECRET=${{ GOOGLE_CLIENT_SECRET }}
+              DATABASE_URL=${{ DATABASE_URL }}
+              NEXT_PUBLIC_BACKEND_SERVER=${{ NEXT_PUBLIC_BACKEND_SERVER }}
+              NEXT_PUBLIC_APP_SERVER=${{ NEXT_PUBLIC_APP_SERVER }}
+              NEXT_PUBLIC_WS_SERVER=${{ NEXT_PUBLIC_WS_SERVER }}
+              NEXT_PUBLIC_LIVEKIT_API_KEY=${{ NEXT_PUBLIC_LIVEKIT_API_KEY }}
+              NEXT_PUBLIC_LIVEKIT_API_SECRET=${{ NEXT_PUBLIC_LIVEKIT_API_SECRET }}
+              NEXT_PUBLIC_LIVEKIT_WS_URL=${{ NEXT_PUBLIC_LIVEKIT_WS_URL }}
           file: ./client/Dockerfile
           push: true
           tags: karthik150502/cademy_client:latest
