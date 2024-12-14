@@ -20,7 +20,7 @@ jobs:
       - name: Build and Push docker image
         uses: docker/build-push-action@v2
         with:
-          context: .
+          context: ./client
           build-args: |   
               AUTH_SECRET=${{ secrets.AUTH_SECRET }}
           file: ./client/Dockerfile
