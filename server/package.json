@@ -4,9 +4,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc -w",
+    "build": "tsc -b",
     "start": "node dist/index.js",
-    "dev": "concurrently \"npm run build\" \"nodemon dist/index.js\"",
+    "dev": "concurrently \"tsc -w\" \"nodemon dist/index.js\"",
     "db:generate":"npx prisma generate"
   },
   "keywords": [],
