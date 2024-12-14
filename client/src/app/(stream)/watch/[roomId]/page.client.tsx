@@ -1,6 +1,4 @@
 "use client";
-
-
 import { StreamPlayer } from "@/components/livekit/stream_player";
 import { TokenContext } from "@/components/livekit/token_context";
 import { JoinStreamResponse } from "@/types/livekit/index";
@@ -10,13 +8,13 @@ import { Loader as Spinner, ChevronRight as ArrowRightIcon, User as PersonIcon }
 import {
     Avatar,
     Box,
-    Button,
     Card,
     Flex,
     Heading,
     Text,
     TextField,
 } from "@radix-ui/themes";
+import { Button } from "@/components/ui/button"
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { joinStream } from "@/actions/livekit/join_stream";
@@ -106,7 +104,7 @@ export default function WatchPage({
                 <TokenContext.Provider value={authToken}>
                     <LiveKitRoom serverUrl={serverUrl} token={roomToken}>
                         <Box className="flex-1">
-                            <StreamPlayer isHost />
+                            <StreamPlayer />
                         </Box>
                     </LiveKitRoom>
                 </TokenContext.Provider>

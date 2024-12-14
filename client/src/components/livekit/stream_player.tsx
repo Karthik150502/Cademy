@@ -12,7 +12,8 @@ import {
     useTracks,
 } from "@livekit/components-react";
 import { Copy as CopyIcon, Eye as EyeClosedIcon, EyeOff as EyeOpenIcon } from "lucide-react";
-import { Avatar, Badge, Button, Flex, Grid } from "@radix-ui/themes";
+import { Avatar, Badge, Flex, Grid } from "@radix-ui/themes";
+import { Button } from "../ui/button";
 import {
     ConnectionState,
     LocalVideoTrack,
@@ -25,11 +26,13 @@ import { PresenceDialog } from "./presence-dialog";
 import { Env } from "@/lib/config";
 import { useMutation } from "@tanstack/react-query";
 import { leaveStage } from "@/actions/livekit/leave_stage";
+import { useRouter } from "next/navigation";
 
 
 
 export function StreamPlayer({ isHost = false }) {
-    const [_, copy] = useCopyToClipboard();
+    const router = useRouter();
+    const copy = useCopyToClipboard()[1];
     const [localVideoTrack, setLocalVideoTrack] = useState<LocalVideoTrack>();
     const localVideoEl = useRef<HTMLVideoElement>(null);
     const { metadata, name: roomName, state: roomState } = useRoomContext();
@@ -82,7 +85,10 @@ export function StreamPlayer({ isHost = false }) {
     const leaveStageMutation = useMutation({
         mutationFn: async () => await leaveStage({
             identity: localParticipant.identity
-        })
+        }),
+        onSuccess: () => {
+            router.push("/dashboard");
+        }
     })
 
     return (
@@ -147,84 +153,119 @@ export function StreamPlayer({ isHost = false }) {
                     </div>
                 ))}
             </Grid>
-
-            {remoteAudioTracks.map((t) => (
-                <AudioTrack trackRef={t} key={t.participant.identity} />
-            ))}
+            <Grid>
+                {/* {remoteVideoTracks.map((t) => (
+                    <div key={t.participant.identity} className="relative">
+                        <Flex
+                            className="absolute w-full h-full"
+                            align="center"
+                            justify="center"
+                        >
+                            <Avatar
+                                size="9"
+                                fallback={t.participant.identity[0] ?? "?"}
+                                radius="full"
+                            />
+                        </Flex>
+                        <VideoTrack
+                            trackRef={t}
+                            className="absolute w-full h-full bg-transparent"
+                        />
+                        <div className="absolute w-full h-full">
+                            <Badge
+                                variant="outline"
+                                color="gray"
+                                className="absolute bottom-2 right-2"
+                            >
+                                {t.participant.identity}
+                            </Badge>
+                        </div>
+                    </div>
+                ))} */}
+            </Grid>
+            {
+                remoteAudioTracks.map((t) => (
+                    <AudioTrack trackRef={t} key={t.participant.identity} />
+                ))
+            }
             <StartAudio
                 label="Click to allow audio playback"
                 className="absolute top-0 h-full w-full bg-gray-2-translucent text-white"
             />
 
             <div className="absolute h-full flex flex-col items-center justify-between top-0 w-full p-2">
-                <Flex justify="between" align="end">
-                    <Flex gap="2" justify="center" align="center">
-                        <Button
-                            size="1"
-                            variant="soft"
-                            disabled={!Boolean(roomName)}
-                            onClick={() =>
-                                copy(`${Env.siteUrl}/watch/${roomName}`)
-                            }
-                        >
-                            {roomState === ConnectionState.Connected ? (
-                                <>
-                                    {roomName} <CopyIcon />
-                                </>
-                            ) : (
-                                "Loading..."
-                            )}
-                        </Button>
-                    </Flex>
-                    <Flex gap="2">
-                        {roomState === ConnectionState.Connected && (
-                            <Flex gap="1" align="center">
-                                <div className="rounded-6 bg-red-9 w-2 h-2 animate-pulse" />
-                                <Button disabled>
-                                    Live
-                                </Button>
-                            </Flex>
+                <div className="w-full flex items-start justify-between">
+                    <Button
+                        variant={"ghost"}
+                        disabled={!Boolean(roomName)}
+                        onClick={() =>
+                            copy(`${Env.siteUrl}/watch/${roomName}`)
+                        }
+                    >
+                        {roomState === ConnectionState.Connected ? (
+                            <>
+                                {roomName} <CopyIcon />
+                            </>
+                        ) : (
+                            "Loading..."
                         )}
-                        <PresenceDialog isHost={isHost}>
-                            <div className="relative">
-                                {showNotification && (
-                                    <div className="absolute flex h-3 w-3 -top-1 -right-1">
-                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-6 bg-accent-11 opacity-75"></span>
-                                        <span className="relative inline-flex rounded-6 h-3 w-3 bg-accent-11"></span>
-                                    </div>
-                                )}
-                                <Button
-                                    size="1"
-                                    variant="soft"
-                                    disabled={roomState !== ConnectionState.Connected}
-                                >
-                                    {roomState === ConnectionState.Connected ? (
-                                        <EyeOpenIcon />
-                                    ) : (
-                                        <EyeClosedIcon />
+                    </Button>
+                    <div className="flex items-center gap-x-2">
+                        <div className="flex flex-col items-end justify-center gap-y-2">
+                            {roomState === ConnectionState.Connected && (
+                                <Flex gap="1" align="center">
+                                    <div className="rounded-6 bg-red-9 w-2 h-2 animate-pulse" />
+                                    <Button disabled variant={"outline"}>
+                                        Live
+                                    </Button>
+                                </Flex>
+                            )}
+                            <PresenceDialog isHost={isHost}>
+                                <div className="relative">
+                                    {showNotification && (
+                                        <div className="absolute flex h-3 w-3 -top-1 -right-1">
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-6 bg-accent-11 opacity-75"></span>
+                                            <span className="relative inline-flex rounded-6 h-3 w-3 bg-accent-11"></span>
+                                        </div>
                                     )}
-                                    {roomState === ConnectionState.Connected
-                                        ? participants.length
-                                        : ""}
-                                </Button>
-                            </div>
-                        </PresenceDialog>
-                    </Flex>
-                </Flex>
+                                    <Button
+                                        size={"icon"}
+                                        variant={"outline"}
+                                        disabled={roomState !== ConnectionState.Connected}
+                                    >
+                                        {roomState === ConnectionState.Connected ? (
+                                            <EyeOpenIcon />
+                                        ) : (
+                                            <EyeClosedIcon />
+                                        )}
+                                        {roomState === ConnectionState.Connected
+                                            ? participants.length
+                                            : ""}
+                                    </Button>
+                                </div>
+                            </PresenceDialog>
+                        </div>
+                    </div>
+                </div>
                 <div className="flex items-center w-full justify-center gap-x-2">
                     {roomName && canHost && (
                         <Flex gap="2">
                             {roomMetadata?.creator_identity !==
                                 localParticipant.identity && (
-                                    <Button size="1" onClick={() => { leaveStageMutation.mutate() }}>
+                                    <Button
+                                        variant={"outline"} onClick={() => { leaveStageMutation.mutate() }}>
                                         Leave stage
                                     </Button>
                                 )}
                         </Flex>
                     )}
-                    <MediaDeviceSettings />
+
+                    {
+                        (roomName && canHost) && <MediaDeviceSettings />
+                    }
+
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

@@ -1,7 +1,7 @@
 'use client'
 import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { cn } from '@/lib/utils'
-import { ChevronDown, Loader } from 'lucide-react'
+import { ChevronDown, SkipForward, SkipBack, Loader } from 'lucide-react'
 import { CanvasStroke } from '@/types/whiteboard';
 import { MeetingRecording, Room } from '@prisma/client'
 import { User } from 'next-auth'
@@ -21,13 +21,12 @@ export default function WhiteboardReplay({ recordingData }: { recordingData: Sin
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [openTool, setOpenTool] = useState<boolean>(true);
     const pathsRef = useRef<CanvasStroke[]>([]);
+    const allPathsRef = useRef<CanvasStroke[]>([]);
     const timerRefs = useRef<NodeJS.Timeout[]>([]);
     const previousTime = useRef<number>(0);
     const strokeTimer = useRef<NodeJS.Timeout>();
+    const offset = useRef<number>(0);
     const [paused, setPaused] = useState<boolean>(false);
-
-
-
 
     const draw = useCallback((ctx: CanvasRenderingContext2D | null | undefined, path: CanvasStroke, i: number) => {
         if (ctx) {
@@ -60,6 +59,7 @@ export default function WhiteboardReplay({ recordingData }: { recordingData: Sin
 
     const seekToPoint = useCallback((seekIndex: number) => {
         const canvas = canvasRef.current;
+        pathsRef.current = pathsRef.current.slice(0, seekIndex);
         if (canvas) {
             const ctx = canvas.getContext('2d');
             if (ctx) {
@@ -87,10 +87,12 @@ export default function WhiteboardReplay({ recordingData }: { recordingData: Sin
     const startReplaying = useCallback((strokes: CanvasStroke[]) => {
         strokes.forEach((stroke) => {
             strokeTimer.current = setTimeout(() => {
+                offset.current = pathsRef.current.length;
                 previousTime.current = stroke.timeStamp;
                 restoreCanvasStroke(stroke);
                 clearTimeout(strokeTimer.current);
             }, stroke.timeStamp - previousTime.current);
+            timerRefs.current.push(strokeTimer.current);
         })
     }, [restoreCanvasStroke]);
 
@@ -138,6 +140,16 @@ export default function WhiteboardReplay({ recordingData }: { recordingData: Sin
         }
     }, [])
 
+
+    const pause = () => {
+        timerRefs.current.forEach(i => {
+            clearTimeout(i);
+        })
+    }
+    const play = () => {
+        startReplaying(allPathsRef.current.slice(offset.current, allPathsRef.current.length));
+    }
+
     useEffect(() => {
         const handleResize = () => {
             const canvas = canvasRef.current
@@ -160,10 +172,13 @@ export default function WhiteboardReplay({ recordingData }: { recordingData: Sin
 
     useEffect(() => {
         if (recordingData) {
-            restoreCanvas(JSON.parse(recordingData.initialState) as CanvasStroke[]);
+            const initialState = JSON.parse(recordingData.initialState) as CanvasStroke[];
+            restoreCanvas(initialState);
             setIsLoading(false);
             previousTime.current = new Date(recordingData.createdAt).getTime();
-            startReplaying(JSON.parse(recordingData.subsequentStates) as CanvasStroke[])
+            const subState = JSON.parse(recordingData.subsequentStates) as CanvasStroke[];
+            startReplaying(subState);
+            allPathsRef.current = [...initialState, ...subState];
         }
     }, [recordingData, restoreCanvas, startReplaying])
 
@@ -178,9 +193,21 @@ export default function WhiteboardReplay({ recordingData }: { recordingData: Sin
                 </div>
 
 
+                <Button
+                    onClick={() => {
+                        offset.current -= 1;
+                        seekToPoint(offset.current);
+                    }}
+                ><SkipBack /></Button>
                 <Button className='flex items-center justify-center gap-x-1' variant={"outline"} disabled={isLoading}
                     onClick={() => {
-                        setPaused(!paused);
+                        if (!paused) {
+                            pause()
+                            setPaused(true);
+                        } else {
+                            play();
+                            setPaused(false);
+                        }
                     }}
                 >
                     {
@@ -193,6 +220,14 @@ export default function WhiteboardReplay({ recordingData }: { recordingData: Sin
                         </>
                     }
 
+                </Button>
+                <Button
+                    onClick={() => {
+                        offset.current += 1
+                        seekToPoint(offset.current);
+                    }}
+                >
+                    <SkipForward />
                 </Button>
                 <div className={cn("h-10 w-10 cursor-pointer rounded-full bg-white border border-black/15 opacity-70 transition-all hover:opacity-100 duration-300 flex items-center justify-center absolute -bottom-12 left-[50%]", openTool ? "rotate-0" : "rotate-180")}
                     onClick={() => { setOpenTool(!openTool) }}

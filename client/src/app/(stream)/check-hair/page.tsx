@@ -2,12 +2,13 @@
 import { useWS } from '@/providers/wsProvider';
 import { WhiteBoarsInitialState } from '@/store/recoil';
 import { IncomingEvents, OutgoingEvents } from '@/types/whiteboard';
-import { Button } from '@/components/ui/button';
 import { useSession } from 'next-auth/react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useCallback, useEffect, useRef } from 'react'
 import { useSetRecoilState } from 'recoil';
+import { useQuery } from '@tanstack/react-query';
+import { getSingleMeetingDetail } from '@/actions/getSingleMeeting';
+import MeetingDetails from '@/components/app/meetingDetails';
 
 interface PageProps {
     searchParams: {
@@ -40,7 +41,14 @@ export default function CheckHair({
     const setWhiteBoard = useSetRecoilState(WhiteBoarsInitialState);
     const ws = useWS();
 
-
+    const { data, isPending } = useQuery({
+        queryKey: [`meeting-${roomId}`],
+        queryFn: async () => {
+            return await getSingleMeetingDetail({
+                meetingId: roomId!
+            })
+        }
+    })
     const handleMeetingJoin = useCallback(() => {
         if (ws && ws.socket) {
             ws.socket.send(JSON.stringify({
@@ -98,26 +106,24 @@ export default function CheckHair({
         return () => {
             if (vidRef) {
                 const stream = vidRef.srcObject as MediaStream; // Type assertion
-                const tracks = stream.getTracks();
-                tracks.forEach((track: MediaStreamTrack) => track.stop());
+                if (stream) {
+                    const tracks = stream.getTracks();
+                    tracks.forEach((track: MediaStreamTrack) => track.stop());
+                }
             }
         };
     }, []);
 
     return (
-        <div className='min-h-screen overflow-hidden relative flex flex-col items-center
-        justify-center gap-y-3'>
+        <div className='min-h-screen max-h-screen overflow-auto py-4 no-scrollbar relative flex flex-col lg:flex-row lg:justify-center items-center justify-start  gap-4'>
             <video
                 ref={videoRef}
                 autoPlay
                 playsInline
-                style={{ width: "80%", borderRadius: "10px" }}
+                style={{ width: "50%", borderRadius: "10px" }}
             />
-            <Button asChild>
-                <Link href={isHosting ? `/host?&at=${at}&rt=${rt}&roomId=${roomId}` : `/watch/${roomId}`}>
-                    Join Meeting
-                </Link>
-            </Button>
+            <MeetingDetails isPending={isPending} room={data && data.room} at={at} rt={rt} isHosting={isHosting} />
+
         </div>
     )
 }

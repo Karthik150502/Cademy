@@ -12,7 +12,7 @@ import { WhiteBoarsInitialState } from '@/store/recoil'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 const colors = ['black', 'red', 'green', 'blue', 'yellow', "white"]
-export default function Whiteboard({ meetingId }: { meetingId: string }) {
+export default function Whiteboard({ meetingId, isHost = false }: { meetingId: string, isHost?: boolean }) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const router = useRouter();
     const [color, setColor] = useState('black');
@@ -57,7 +57,7 @@ export default function Whiteboard({ meetingId }: { meetingId: string }) {
 
     const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
         const canvas = canvasRef.current
-        if (canvas) {
+        if (canvas && isHost) {
             const ctx = canvas.getContext('2d')
             if (ctx) {
                 ctx.beginPath()
@@ -206,7 +206,7 @@ export default function Whiteboard({ meetingId }: { meetingId: string }) {
     const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
         if (!isDrawing) { return; }
         const canvas = canvasRef.current;
-        if (canvas) {
+        if (canvas && isHost) {
             const ctx = canvas.getContext('2d');
             if (ctx) {
                 if (isErasing) {
@@ -280,73 +280,83 @@ export default function Whiteboard({ meetingId }: { meetingId: string }) {
                 >
                     <ChevronDown />
                 </div>
-
-                <Button variant={"outline"} className='flex items-center justify-center gap-x-2'
-                    onClick={() => {
-                        if (!isRecording) {
-                            startRecording();
-                        } else {
-                            stopRecording();
-                        }
-                        setIsRecording(!isRecording)
-                    }}
-                >
-                    {isRecording ? <>
+                {
+                    (!isHost && isRecording) && <Button variant={"outline"} className='flex gap-2 items-center'>
                         <div className='h-3 w-3 bg-red-500 rounded-full'></div>
-                        <p className='text-xs'>Recording...
+                        <p className='text-xs'>Host is recording...
                         </p>
-                    </> : <>
-                        <VideoIcon />
-                        <p className='text-xs'>Record</p>
-                    </>}
-                </Button>
-
-                <div className="flex space-x-2">
-                    {colors.map((c) => (
-                        <Button
-                            key={c}
-                            variant={"outline"}
-                            size={"icon"}
-                            className={`w-6 h-6 border border-black/25 rounded-full ${color === c ? 'ring-1 ring-offset-1 ring-gray-400' : ''}`}
-                            style={{ backgroundColor: c }}
-                            onClick={() => {
-                                setIsErasing(false);
-                                setColor(c);
-                            }}
-                        />
-                    ))}
-                    <Button
-                        variant={"outline"}
-                        size={"icon"}
-                        className={`w-6 h-6 rounded-full border border-black/25  bg-white flex items-center justify-center ${isErasing ? 'ring-1 ring-offset-1 ring-gray-400' : ''}`}
-                        onClick={() => setIsErasing(true)}
-                    >
-                        <Eraser strokeWidth={1} className="w-5 h-5 text-gray-600" />
                     </Button>
-                </div>
-                <div className="flex items-center space-x-4">
-                    <div className="flex flex-col gap-y-2 items-center space-x-2">
-                        <span className="text-xs font-medium">{isErasing ? 'Eraser' : 'Brush'} Size:</span>
-                        {
-                            isErasing ? <Slider
-                                min={1}
-                                max={100}
-                                step={1}
-                                value={[eraserSize]}
-                                onValueChange={(value) => setEraserSize(value[0])}
-                                className="w-32"
-                            /> : <Slider
-                                min={1}
-                                max={20}
-                                step={1}
-                                value={[size]}
-                                onValueChange={(value) => setSize(value[0])}
-                                className="w-32"
-                            />
-                        }
-                    </div>
+                }
+                {
 
-                </div>
+                    isHost && <>
+                        <Button variant={"outline"} className='flex items-center justify-center gap-x-2'
+                            onClick={() => {
+                                if (!isRecording) {
+                                    startRecording();
+                                } else {
+                                    stopRecording();
+                                }
+                                setIsRecording(!isRecording)
+                            }}
+                        >
+                            {isRecording ? <>
+                                <div className='h-3 w-3 bg-red-500 rounded-full'></div>
+                                <p className='text-xs'>Recording...
+                                </p>
+                            </> : <>
+                                <VideoIcon />
+                                <p className='text-xs'>Record</p>
+                            </>}
+                        </Button>
+                        <div className="flex space-x-2">
+                            {colors.map((c) => (
+                                <Button
+                                    key={c}
+                                    variant={"outline"}
+                                    size={"icon"}
+                                    className={`w-6 h-6 border border-black/25 rounded-full ${color === c ? 'ring-1 ring-offset-1 ring-gray-400' : ''}`}
+                                    style={{ backgroundColor: c }}
+                                    onClick={() => {
+                                        setIsErasing(false);
+                                        setColor(c);
+                                    }}
+                                />
+                            ))}
+                            <Button
+                                variant={"outline"}
+                                size={"icon"}
+                                className={`w-6 h-6 rounded-full border border-black/25  bg-white flex items-center justify-center ${isErasing ? 'ring-1 ring-offset-1 ring-gray-400' : ''}`}
+                                onClick={() => setIsErasing(true)}
+                            >
+                                <Eraser strokeWidth={1} className="w-5 h-5 text-gray-600" />
+                            </Button>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                            <div className="flex flex-col gap-y-2 items-center space-x-2">
+                                <span className="text-xs font-medium">{isErasing ? 'Eraser' : 'Brush'} Size:</span>
+                                {
+                                    isErasing ? <Slider
+                                        min={1}
+                                        max={100}
+                                        step={1}
+                                        value={[eraserSize]}
+                                        onValueChange={(value) => setEraserSize(value[0])}
+                                        className="w-32"
+                                    /> : <Slider
+                                        min={1}
+                                        max={20}
+                                        step={1}
+                                        value={[size]}
+                                        onValueChange={(value) => setSize(value[0])}
+                                        className="w-32"
+                                    />
+                                }
+                            </div>
+
+                        </div>
+                    </>
+                }
             </div>
             <canvas
                 ref={canvasRef}
@@ -362,7 +372,7 @@ export default function Whiteboard({ meetingId }: { meetingId: string }) {
                 onMouseUp={stopDrawing}
                 onMouseOut={stopDrawing}
             />
-        </div>
+        </div >
     )
 }
 

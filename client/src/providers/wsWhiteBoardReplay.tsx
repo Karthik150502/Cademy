@@ -20,7 +20,7 @@ export default function WsWhiteBoardReplay({ children }: { children: React.React
             state.close();
             setSocket(null);
         }
-    }, [])
+    }, [data?.user?.id])
 
     return (
         <WsContext.Provider value={{ socket }}>

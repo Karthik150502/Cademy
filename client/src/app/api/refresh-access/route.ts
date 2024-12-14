@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
             message: "Token not found",
         })
     }
-    let payload = decode(token) as JwtPayload;
+    const payload = decode(token) as JwtPayload;
     const accessToken = sign({
         id: payload.id,
         email: payload.email,

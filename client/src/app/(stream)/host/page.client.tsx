@@ -28,7 +28,7 @@ export default function HostPage({
                     </LiveKitRoom>
                 </TokenContext.Provider>
             </div>
-            <Whiteboard meetingId={roomId} />
+            <Whiteboard meetingId={roomId} isHost />
         </div>
     );
 }

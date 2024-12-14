@@ -19,9 +19,7 @@ import {
 import { useForm } from 'react-hook-form';
 import { JoinRoomSchema, JoinRoomSchemaType } from '@/schema/joinRoomSchema';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { joinRoom } from '@/actions/joinMeeting';
 import { Button } from '../ui/button';
 import { Loader2 } from 'lucide-react';
 import { Input } from '../ui/input';

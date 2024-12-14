@@ -23,7 +23,7 @@ export default function WsProvider({ children }: { children: React.ReactNode }) 
             state.close();
             setSocket(null);
         }
-    }, [])
+    }, [data?.user?.id])
 
     return (
         <WsContext.Provider value={{ socket }}>

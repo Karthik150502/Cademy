@@ -32,7 +32,7 @@ export default function Page() {
                 console.error(e);
             }
         })();
-    }, []);
+    }, [session?.user?.email]);
 
     if (token === '') {
         return <div>Getting token...</div>;
@@ -43,7 +43,7 @@ export default function Page() {
             video={true}
             audio={true}
             token={token}
-            serverUrl={Env.liveKitUrl}
+            serverUrl={Env.liveKitWsUrl}
             // Use the default LiveKit theme for nice styles.
             data-lk-theme="default"
             style={{ height: '100dvh' }}

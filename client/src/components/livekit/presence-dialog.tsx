@@ -9,12 +9,12 @@ import {
 import { X as Cross1Icon, User as PersonIcon } from "lucide-react";
 import {
     Avatar,
-    Button,
     Dialog,
     Flex,
     IconButton,
     Text,
 } from "@radix-ui/themes";
+import { Button } from "../ui/button";
 import { Participant } from "livekit-client";
 import { useAuthToken } from "@/components/livekit/token_context";
 
@@ -80,30 +80,30 @@ function ParticipantListItem({
                 participantMetadata.hand_raised
             ) {
                 return (
-                    <Button size="1" variant="outline" onClick={onCancel}>
+                    <Button size={"sm"} variant="outline" onClick={onCancel}>
                         Remove
                     </Button>
                 );
             } else if (participantMetadata.hand_raised) {
                 return (
                     <Flex gap="2">
-                        <Button size="1" onClick={onInvite}>
+                        <Button size={"sm"} onClick={onInvite}>
                             Accept
                         </Button>
-                        <Button size="1" variant="outline" onClick={onCancel}>
+                        <Button size={"sm"} variant="outline" onClick={onCancel}>
                             Reject
                         </Button>
-                    </Flex>
+                    </Flex >
                 );
             } else if (participantMetadata.invited_to_stage) {
                 return (
-                    <Button size="1" variant="outline" disabled>
+                    <Button size={"sm"} variant="outline" disabled>
                         Pending
                     </Button>
                 );
             } else if (!participantMetadata.invited_to_stage) {
                 return (
-                    <Button size="1" onClick={onInvite}>
+                    <Button variant={"outline"} onClick={onInvite}>
                         Invite to stage
                     </Button>
                 );
@@ -118,7 +118,7 @@ function ParticipantListItem({
                 participantMetadata.hand_raised
             ) {
                 return (
-                    <Button size="1" onClick={onCancel}>
+                    <Button variant={"outline"} onClick={onCancel}>
                         Leave stage
                     </Button>
                 );
@@ -128,10 +128,10 @@ function ParticipantListItem({
             ) {
                 return (
                     <Flex gap="2">
-                        <Button size="1" onClick={onRaiseHand}>
+                        <Button variant={"outline"} onClick={onRaiseHand}>
                             Accept
                         </Button>
-                        <Button size="1" variant="outline" onClick={onCancel}>
+                        <Button variant={"outline"} onClick={onCancel}>
                             Reject
                         </Button>
                     </Flex>
@@ -141,7 +141,7 @@ function ParticipantListItem({
                 participantMetadata.hand_raised
             ) {
                 return (
-                    <Button size="1" variant="outline" onClick={onCancel}>
+                    <Button variant="outline" onClick={onCancel}>
                         Cancel
                     </Button>
                 );
@@ -150,7 +150,7 @@ function ParticipantListItem({
                 !participantMetadata.hand_raised
             ) {
                 return (
-                    <Button size="1" onClick={onRaiseHand}>
+                    <Button onClick={onRaiseHand}>
                         Raise hand
                     </Button>
                 );
@@ -193,7 +193,7 @@ export function PresenceDialog({
         (participant) => participant.permissions?.canPublish ?? false
     );
     const viewers = participants.filter(
-        (participant) => !participant.permissions?.canPublish ?? true
+        (participant) => !(participant.permissions?.canPublish) || true
     );
 
     return (

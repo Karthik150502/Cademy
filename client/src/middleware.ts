@@ -1,14 +1,6 @@
-
-
 // import NextAuth from "next-auth";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
-import { setAccessToken } from "./actions/setAccessToken";
-import { JwtPayload } from "jsonwebtoken";
-import { cookies } from "next/headers";
-import { getToken } from "next-auth/jwt";
-import { Env } from "./lib/config";
-
 // Use only one of the two middleware options below
 // 1. Use middleware directly
 // export const { auth: middleware } = NextAuth(authConfig)

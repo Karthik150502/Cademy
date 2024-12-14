@@ -1,9 +1,5 @@
 'use client'
-
-
 import React, { useEffect, useState } from 'react'
-
-
 type Props = {
     timeStamps: number[]
 }
@@ -14,6 +10,8 @@ export default function ProgressSlider({ timeStamps }: Props) {
     const [duration, setDuration] = useState<number>(0);
     const [isSeeking, setIsSeeking] = useState<boolean>(false);
 
+    console.log(timeStamps);
+    console.log(isSeeking);
 
     useEffect(() => {
         const timeS = window.localStorage.getItem("timeStamps");

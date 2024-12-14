@@ -7,7 +7,6 @@ import { Loader, Info, Play } from 'lucide-react'
 import { Button } from '../ui/button'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import Image from 'next/image'
 import { MeetingRecording } from '@prisma/client'
 import { getRecordings } from '@/actions/getAllRecordings'
 import moment from 'moment'
@@ -16,8 +15,6 @@ type RecordingType = MeetingRecording & {
         user: User
     },
 };
-
-
 
 export default function AllRecordings() {
 
