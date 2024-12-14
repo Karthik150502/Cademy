@@ -31,12 +31,12 @@ ENV NEXT_PUBLIC_LIVEKIT_WS_URL=${NEXT_PUBLIC_LIVEKIT_WS_URL}
 # Install dependencies
 RUN npm install --no-audit
 
+# Copy the rest of the application code
+COPY . .
+
 RUN ls
 
 RUN npm run db:generate
-
-# Copy the rest of the application code
-COPY . .
 
 # Build the Next.js app
 RUN npm run build
