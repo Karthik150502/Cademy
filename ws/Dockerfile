@@ -6,11 +6,7 @@ WORKDIR /usr/src/app
 
 COPY package.json package-lock.json* ./
 
-# Build args
-ARG DATABASE_URL
 
-# Set environment variables from build args
-ENV DATABASE_URL=${DATABASE_URL}
 
 # Install dependencies
 RUN npm install --no-audit
@@ -40,6 +36,12 @@ COPY --from=builder /usr/src/app/node_modules ./node_modules
 
 # Expose the port runs on
 EXPOSE 8001
+
+# Build args
+ARG DATABASE_URL
+
+# Set environment variables from build args
+ENV DATABASE_URL=${DATABASE_URL}
 
 # Run app
 CMD ["npm", "run", "start"]
