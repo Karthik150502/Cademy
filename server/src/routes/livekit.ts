@@ -39,7 +39,6 @@ app.post("/create_stream", authMiddleware, async (req: Request, res: Response) =
     const controller = new Controller();
     try {
         const reqBody = req.body;
-
         const room = await prisma.room.create({
             data: {
                 organiser: req.user?.id!,

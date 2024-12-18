@@ -199,6 +199,8 @@ export class Controller {
         metadata,
         roomId: roomName,
     }: CreateStreamParams): Promise<CreateStreamResponse> {
+        console.log("livekitApiKey", livekitApiKey);
+        console.log("livekitApiSecret", livekitApiSecret);
         const at = new AccessToken(
             livekitApiKey,
             livekitApiSecret,

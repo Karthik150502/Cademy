@@ -1,11 +1,11 @@
 import Redis from "ioredis";
 import prisma from "../lib/prisma";
 import { CanvasStroke } from "../types";
-import { REDIS_HOST, REDIS_PORT } from "../lib/config";
+import { PROD, REDIS_HOST, REDIS_PORT } from "../lib/config";
 export class RedisManager {
 
     private static redis: Redis = new Redis({
-        host: REDIS_HOST!,
+        host: PROD ? REDIS_HOST! : "0.0.0.0",
         port: REDIS_PORT
     })
 
