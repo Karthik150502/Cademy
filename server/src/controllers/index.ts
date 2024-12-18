@@ -111,11 +111,7 @@ export class Controller {
         const httpUrl = liveKitWsUrl.replace("wss://", "https://")
             .replace("ws://", "http://");
         this.ingressService = new IngressClient(httpUrl);
-        console.log({
-            httpUrl,
-            livekitApiKey,
-            livekitApiSecret
-        })
+
         this.roomService = new RoomServiceClient(
             httpUrl,
             livekitApiKey,
