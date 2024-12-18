@@ -12,8 +12,6 @@ type WsProps = {
 export const WsContext = React.createContext<WsProps | null>(null);
 
 export default function WsProvider({ children }: { children: React.ReactNode }) {
-
-
     const { data } = useSession();
     const [socket, setSocket] = useState<WebSocket | null>(null);
     useEffect(() => {
