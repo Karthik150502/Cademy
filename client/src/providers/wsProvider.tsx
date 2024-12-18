@@ -16,7 +16,7 @@ export default function WsProvider({ children }: { children: React.ReactNode }) 
     const [socket, setSocket] = useState<WebSocket | null>(null);
     useEffect(() => {
         console.log("Env.WsServer = ", Env.WsServer);
-        const state = new WebSocket(`${Env.WsServer}?userId=${data?.user?.id}`);
+        const state = new WebSocket(`ws://ws-cademy.decimalight.in?userId=${data?.user?.id}`);
         setSocket(state);
         return () => {
             state.close();

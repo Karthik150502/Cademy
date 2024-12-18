@@ -8,8 +8,7 @@ import { sign, JwtPayload } from 'jsonwebtoken'
 import { AdapterUser } from "next-auth/adapters";
 import { setAccessToken } from "@/actions/setAccessToken";
 
-console.log("Env = ", Env.WsServer);
-
+    
 export const authOptions = {
     providers: [
         GoogleProvider({
