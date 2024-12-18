@@ -52,6 +52,7 @@ export default function CreateRoomDialog() {
             setOpen(false);
         },
         onError: (e) => {
+            console.log("Error =", e);
             toast.error(`Failed to create a Meeting: ${e.message}`, { id: "create-meeting" });
             setOpen(false);
         }

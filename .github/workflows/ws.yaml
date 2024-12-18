@@ -23,6 +23,8 @@ jobs:
           context: ws
           build-args: |   
               DATABASE_URL=${{ secrets.DATABASE_URL }}
+              REDIS_HOST=${{ secrets.REDIS_HOST }}
+              REDIS_PORT=${{ secrets.REDIS_PORT }}
           file: ./ws/Dockerfile
           push: true
           tags: karthik150502/cademy_ws:latest

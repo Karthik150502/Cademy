@@ -39,9 +39,13 @@ EXPOSE 8001
 
 # Build args
 ARG DATABASE_URL
+ARG REDIS_HOST
+ARG REDIS_PORT
 
 # Set environment variables from build args
 ENV DATABASE_URL=${DATABASE_URL}
+ENV REDIS_HOST=${REDIS_HOST}
+ENV REDIS_PORT=${REDIS_PORT}
 
 # Run app
 CMD ["npm", "run", "start"]
