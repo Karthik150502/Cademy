@@ -1,12 +1,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: cademy-ws-clusterip
+  name: cademy-ws
 spec:
   selector:
-    app: cademy-ws
+    app: cademy-ws   # Matches the label of your Deployment pods
   ports:
     - protocol: TCP
-      port: 8002 # Service port
-      targetPort: 8002 # Container port
-  type: ClusterIP
+      port: 8001          # The port on the service
+      targetPort: 8001    # The port on the backend container

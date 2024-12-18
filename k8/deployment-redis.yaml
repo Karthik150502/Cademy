@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cademy-redis
+  labels:
+    app: cademy-redis
+spec:
+  replicas: 1  # Use 1 replica for a standalone Redis
+  selector:
+    matchLabels:
+      app: cademy-redis
+  template:
+    metadata:
+      labels:
+        app: cademy-redis
+    spec:
+      containers:
+      - name: cademy-redis
+        image: redis:latest  # Use the Redis version you prefer
+        ports:
+        - containerPort: 6379

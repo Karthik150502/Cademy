@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cademy-redis
+  labels:
+    app: cademy-redis
+spec:
+  selector:
+    app: cademy-redis
+  ports:
+    - protocol: TCP
+      port: 6379        # The port to expose
+      targetPort: 6379  # The port Redis is listening on
+  type: ClusterIP       # Use ClusterIP to expose Redis only within the cluster

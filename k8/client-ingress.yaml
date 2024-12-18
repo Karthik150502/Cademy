@@ -4,6 +4,7 @@ metadata:
   name: cademy-client-ingress
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
+    
 spec:
   ingressClassName: nginx   # Specify the ingress class for NGINX
   rules:
