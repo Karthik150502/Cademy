@@ -111,6 +111,11 @@ export class Controller {
         const httpUrl = liveKitWsUrl.replace("wss://", "https://")
             .replace("ws://", "http://");
         this.ingressService = new IngressClient(httpUrl);
+        console.log({
+            httpUrl,
+            livekitApiKey,
+            livekitApiSecret
+        })
         this.roomService = new RoomServiceClient(
             httpUrl,
             livekitApiKey,
@@ -199,8 +204,6 @@ export class Controller {
         metadata,
         roomId: roomName,
     }: CreateStreamParams): Promise<CreateStreamResponse> {
-        console.log("livekitApiKey", livekitApiKey);
-        console.log("livekitApiSecret", livekitApiSecret);
         const at = new AccessToken(
             livekitApiKey,
             livekitApiSecret,
