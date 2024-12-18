@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cademy-server-dep
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cademy-server
+  template:
+    metadata:
+      labels:
+        app: cademy-server
+    spec:
+      containers:
+      - name: cademy-server
+        image: karthik150502/cademy_server:latest
+        ports:
+        - containerPort: 8000

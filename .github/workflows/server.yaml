@@ -23,6 +23,10 @@ jobs:
           context: server
           build-args: |   
               AUTH_SECRET=${{ secrets.AUTH_SECRET }}
+              DATABASE_URL=${{ secrets.DATABASE_URL }}
+              NEXT_PUBLIC_LIVEKIT_API_KEY=${{ secrets.NEXT_PUBLIC_LIVEKIT_API_KEY }}
+              NEXT_PUBLIC_LIVEKIT_API_SECRET=${{ secrets.NEXT_PUBLIC_LIVEKIT_API_SECRET }}
+              NEXT_PUBLIC_LIVEKIT_WS_URL=${{ secrets.NEXT_PUBLIC_LIVEKIT_WS_URL }}
           file: ./server/Dockerfile
           push: true
           tags: karthik150502/cademy_server:latest

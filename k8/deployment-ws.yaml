@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cademy-ws-dep
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cademy-ws
+  template:
+    metadata:
+      labels:
+        app: cademy-ws
+    spec:
+      containers:
+      - name: cademy-ws
+        image: karthik150502/cademy_ws:latest
+        ports:
+        - containerPort: 8000

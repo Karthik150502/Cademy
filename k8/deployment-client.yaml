@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cademy-client-dep
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cademy-client
+  template:
+    metadata:
+      labels:
+        app: cademy-client
+    spec:
+      containers:
+      - name: cademy-client
+        image: karthik150502/cademy_client:latest
+        ports:
+        - containerPort: 3000
+  

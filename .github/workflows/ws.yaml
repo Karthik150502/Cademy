@@ -21,6 +21,8 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: ws
+          build-args: |   
+              DATABASE_URL=${{ secrets.DATABASE_URL }}
           file: ./ws/Dockerfile
           push: true
           tags: karthik150502/cademy_ws:latest
