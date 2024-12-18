@@ -6,6 +6,7 @@ import { AUTH_SECRET } from "../lib/config";
 export async function authMiddleware(req: Request, res: Response, next: NextFunction) {
 
     let tokenString = req.headers["authorization"];
+    console.log(tokenString)
     if (!tokenString) {
         res.json({
             status: 403,

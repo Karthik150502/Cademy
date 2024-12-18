@@ -7,6 +7,7 @@ export async function signOutUser() {
     const access = cookies().get("access_token")
     if (access) {
         const payload = decode(access.value) as JwtPayload;
+        
         await prisma.session.delete({
             where: {
                 userId: payload.id
