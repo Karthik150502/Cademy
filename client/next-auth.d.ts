@@ -1,6 +1,5 @@
 import { JwtPayload } from "jsonwebtoken";
 import { JWT } from "next-auth/jwt";
-import { JWTPayload } from "jose";
 
 declare module "next-auth/jwt" {
     interface JWT {

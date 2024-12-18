@@ -19,7 +19,9 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
     let payload;
     try {
         payload = verify(token, AUTH_SECRET) as JwtPayload;
+        console.log("Payload = ", payload);
     } catch {
+        console.log("catch block")
         res.json({
             status: 403,
             message: "Unauthorized"
