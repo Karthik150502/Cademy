@@ -8,6 +8,7 @@ export async function create_Stream_and_Room({
     title
 }: CreateRoomSchemaType) {
     const access_token = cookies().get("access_token")?.value;
+    console.log("BACKEND_URL = ", Api.BACKEND_URL)
     const res = await axios.post(`${Api.BACKEND_URL}/api/v1/livekit/create_stream`, {
         title,
         metadata: {
@@ -19,6 +20,8 @@ export async function create_Stream_and_Room({
         {
             headers: { "Content-Type": "application/json", "authorization": `Bearer ${access_token}` }
         });
+
+    console.log("Res = ", res.data);
     const {
         auth_token,
         connection_details: { token },
