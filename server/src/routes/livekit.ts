@@ -65,6 +65,7 @@ app.post("/create_stream", authMiddleware, async (req: Request, res: Response) =
         });
         return
     } catch (err) {
+        console.log("Error = ", err);
         if (err instanceof Error) {
             res.json({ error: err.message, status: 500 });
             return
