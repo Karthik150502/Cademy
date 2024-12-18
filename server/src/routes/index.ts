@@ -9,6 +9,12 @@ app.use("/room", RoomsRouter);
 app.use("/auth", AuthRouter);
 app.use("/recordings", RecordingsRouter);
 app.use("/livekit", LivekitRouter);
+app.get("/", (req: Request, res: Response) => {
+    res.json({
+        message: "Cademy API healthy.",
+        status: 200
+    })
+})
 
 export default app;
 
