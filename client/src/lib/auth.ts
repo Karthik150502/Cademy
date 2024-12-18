@@ -4,10 +4,12 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { Env } from "./config";
 import prisma from "@/packages/prisma";
 import { compare } from "bcryptjs";
-import { sign } from 'jsonwebtoken'
+import { sign, JwtPayload } from 'jsonwebtoken'
 import { AdapterUser } from "next-auth/adapters";
 import { setAccessToken } from "@/actions/setAccessToken";
-import { JWTPayload } from "jose";
+
+console.log("Env = ", Env.WsServer);
+
 export const authOptions = {
     providers: [
         GoogleProvider({
@@ -141,7 +143,7 @@ export const authOptions = {
                         id: true
                     }
                 }))?.id as string;
-                await setAccessToken({ ...user, id: userId } as JWTPayload);
+                await setAccessToken({ ...user, id: userId } as JwtPayload);
                 const refreshToken = sign({ ...user, id: userId }, Env.AuthSecret, {
                     expiresIn: 60 * 60 * 24 * 30,
                 });
@@ -190,7 +192,7 @@ export const authOptions = {
                 }
             }
             // TODO refresh token in the subsequent client refreshes.
-            // await setAccessToken({ ...token.user, id: token.user?.id } as JWTPayload);
+            // await setAccessToken({ ...token.user, id: token.user?.id } as JwtPayload);
             return token;
         },
         session: async ({ session, token }) => {
