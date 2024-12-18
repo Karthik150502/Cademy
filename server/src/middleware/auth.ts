@@ -18,6 +18,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
     let token = tokenString.split(" ")[1];
     let payload;
     try {
+        console.log("AUTH_SECRET = ", AUTH_SECRET);
         payload = verify(token, AUTH_SECRET) as JwtPayload;
         console.log("Payload = ", payload);
     } catch {
