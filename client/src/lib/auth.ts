@@ -8,7 +8,7 @@ import { sign, JwtPayload } from 'jsonwebtoken'
 import { AdapterUser } from "next-auth/adapters";
 import { setAccessToken } from "@/actions/setAccessToken";
 
-    
+
 export const authOptions = {
     providers: [
         GoogleProvider({
