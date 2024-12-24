@@ -4,7 +4,7 @@ import { CanvasStroke } from "../types";
 import { PROD, REDIS_HOST, REDIS_PORT } from "../lib/config";
 export class RedisManager {
     private static redis: Redis = new Redis({
-        host: PROD ? REDIS_HOST! : "0.0.0.0",
+        host: "cademy-redis.ingress-nginx.svc.cluster.local",
         port: REDIS_PORT
     })
     private constructor() { }
