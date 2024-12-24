@@ -1,5 +1,4 @@
 'use client'
-import { Env } from '@/lib/config';
 import React, { useContext, useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react';
 
