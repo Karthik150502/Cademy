@@ -1,6 +1,4 @@
 'use client'
-
-
 import { Env } from '@/lib/config';
 import { useSession } from 'next-auth/react';
 import React, { useContext, useEffect, useState } from 'react'
@@ -16,7 +14,7 @@ export default function WsProvider({ children }: { children: React.ReactNode }) 
     const [socket, setSocket] = useState<WebSocket | null>(null);
     useEffect(() => {
         console.log("Env.WsServer = ", Env.WsServer);
-        const state = new WebSocket(`wss//ws-cademy.decimalight.in?userId=${data?.user?.id}`);
+        const state = new WebSocket(`wss://ws-cademy.decimalight.in?userId=${data?.user?.id}`);
         setSocket(state);
         return () => {
             state.close();
