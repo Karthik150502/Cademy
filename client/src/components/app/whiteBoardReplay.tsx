@@ -175,7 +175,8 @@ export default function WhiteboardReplay({ recordingData }: { recordingData: Sin
             const initialState = JSON.parse(recordingData.initialState) as CanvasStroke[];
             restoreCanvas(initialState);
             setIsLoading(false);
-            previousTime.current = new Date(recordingData.createdAt).getTime();
+            // previousTime.current = new Date(recordingData.createdAt).getTime();
+            previousTime.current = initialState[initialState.length - 1].timeStamp;
             const subState = JSON.parse(recordingData.subsequentStates) as CanvasStroke[];
             startReplaying(subState);
             allPathsRef.current = [...initialState, ...subState];
